@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>52 Jours — Lyra Origin Story</title>
+
+    <!-- Fonts: Cormorant (display) + IBM Plex Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;0,700;1,400;1,600&family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* === CSS CUSTOM PROPERTIES === */
+        :root {
+            --bg-primary: #0d0a07;
+            --bg-card: rgba(245, 158, 11, 0.04);
+            --bg-card-rose: rgba(244, 63, 94, 0.04);
+            --bg-card-cyan: rgba(34, 211, 238, 0.04);
+            --bg-card-orange: rgba(249, 115, 22, 0.04);
+
+            --text-primary: #e8e4df;
+            --text-secondary: #9a9590;
+            --text-muted: #5a5550;
+
+            --amber: #f59e0b;
+            --amber-light: #fbbf24;
+            --amber-glow: rgba(245, 158, 11, 0.15);
+            --orange: #f97316;
+            --orange-glow: rgba(249, 115, 22, 0.15);
+            --rose: #f43f5e;
+            --rose-glow: rgba(244, 63, 94, 0.15);
+            --cyan: #22d3ee;
+            --cyan-glow: rgba(34, 211, 238, 0.15);
+
+            --font-display: 'Cormorant', serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --title-size: clamp(2rem, 6vw, 5rem);
+            --h2-size: clamp(1.5rem, 4vw, 3.2rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+            --body-size: clamp(0.8rem, 1.4vw, 1.1rem);
+            --small-size: clamp(0.65rem, 1vw, 0.85rem);
+            --label-size: clamp(0.6rem, 0.8vw, 0.75rem);
+
+            --slide-padding: clamp(1.5rem, 5vw, 5rem);
+            --content-gap: clamp(0.75rem, 2vw, 2rem);
+
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration: 0.7s;
+        }
+
+        /* === RESET === */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* === VIEWPORT BASE (from viewport-base.css) === */
+        html, body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.5rem, 5vw, 3rem);
+                --h2-size: clamp(1.25rem, 3.5vw, 2.2rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --title-size: clamp(1.2rem, 4vw, 2.2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint, .decorative, .chrome { display: none; }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.5rem, 8vw, 3rem); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* === TYPOGRAPHY === */
+        h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: 1.15; }
+        h1 { font-size: var(--title-size); }
+        h2 { font-size: var(--h2-size); }
+        h3 { font-size: var(--h3-size); }
+        p { font-size: var(--body-size); color: var(--text-secondary); max-width: 48ch; }
+        .mono { font-family: var(--font-mono); }
+
+        /* === ANIMATIONS === */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity var(--duration) var(--ease-out-expo),
+                        transform var(--duration) var(--ease-out-expo);
+        }
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.92);
+            transition: opacity var(--duration), transform var(--duration) var(--ease-out-expo);
+        }
+        .slide.visible .reveal,
+        .slide.visible .reveal-scale {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .slide.visible .reveal:nth-child(1) { transition-delay: 0.05s; }
+        .slide.visible .reveal:nth-child(2) { transition-delay: 0.15s; }
+        .slide.visible .reveal:nth-child(3) { transition-delay: 0.25s; }
+        .slide.visible .reveal:nth-child(4) { transition-delay: 0.35s; }
+        .slide.visible .reveal:nth-child(5) { transition-delay: 0.45s; }
+        .slide.visible .reveal:nth-child(6) { transition-delay: 0.55s; }
+        .slide.visible .reveal:nth-child(7) { transition-delay: 0.65s; }
+
+        /* === AMBIENT GLOW (per-slide background accent) === */
+        .glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .glow-amber { background: var(--amber-glow); }
+        .glow-orange { background: var(--orange-glow); }
+        .glow-rose { background: var(--rose-glow); }
+        .glow-cyan { background: var(--cyan-glow); }
+
+        /* === SECTION CHROME (phase label + day) === */
+        .chrome {
+            position: absolute;
+            top: clamp(1rem, 3vw, 2.5rem);
+            left: clamp(1rem, 3vw, 2.5rem);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 3;
+        }
+        .chrome-phase {
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.6;
+        }
+        .chrome-day {
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            opacity: 0.4;
+        }
+
+        /* === PROGRESS BAR === */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--amber), var(--orange));
+            z-index: 100;
+            transition: width 0.3s ease;
+        }
+
+        /* === NAV DOTS === */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.75rem, 2vw, 1.5rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot:hover { background: var(--text-secondary); transform: scale(1.4); }
+        .nav-dot.active { background: var(--amber); transform: scale(1.6); }
+
+        /* === SLIDE COUNTER === */
+        .slide-counter {
+            position: fixed;
+            bottom: clamp(0.75rem, 2vw, 1.5rem);
+            left: clamp(1rem, 3vw, 2.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--amber);
+            opacity: 0.35;
+            z-index: 100;
+        }
+
+        /* === AUTOPLAY INDICATOR === */
+        .autoplay-indicator {
+            position: fixed;
+            bottom: clamp(0.75rem, 2vw, 1.5rem);
+            right: clamp(4rem, 8vw, 6rem);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--amber);
+            opacity: 0;
+            z-index: 100;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .autoplay-indicator.active { opacity: 0.5; }
+        .autoplay-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--amber);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* === SHARED COMPONENTS === */
+        .badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.25em 0.75em;
+            border-radius: 2px;
+        }
+        .badge-amber { color: var(--amber); border: 1px solid rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); }
+        .badge-orange { color: var(--orange); border: 1px solid rgba(249,115,22,0.3); background: rgba(249,115,22,0.06); }
+        .badge-rose { color: var(--rose); border: 1px solid rgba(244,63,94,0.3); background: rgba(244,63,94,0.06); }
+        .badge-cyan { color: var(--cyan); border: 1px solid rgba(34,211,238,0.3); background: rgba(34,211,238,0.06); }
+
+        .stat-chip {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 0.3em;
+        }
+        .stat-number {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: clamp(2rem, 5vw, 4.5rem);
+            line-height: 1;
+        }
+        .stat-label {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.5;
+        }
+
+        .terminal-box {
+            border: 1px solid;
+            border-radius: 4px;
+            padding: clamp(0.75rem, 2vw, 1.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            line-height: 1.8;
+            max-width: 40ch;
+        }
+
+        .quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            font-size: clamp(1rem, 2vw, 1.4rem);
+            line-height: 1.5;
+            max-width: 38ch;
+            position: relative;
+            padding-left: 1em;
+        }
+        .quote::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.15em;
+            bottom: 0.15em;
+            width: 2px;
+            border-radius: 1px;
+        }
+        .quote-amber::before { background: var(--amber); }
+        .quote-orange::before { background: var(--orange); }
+        .quote-rose::before { background: var(--rose); }
+        .quote-cyan::before { background: var(--cyan); }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: clamp(0.5rem, 2vw, 1.5rem);
+            align-items: center;
+        }
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            gap: var(--content-gap);
+        }
+
+        .card {
+            border: 1px solid;
+            border-radius: 6px;
+            padding: clamp(0.75rem, 2vw, 1.25rem);
+            flex: 1;
+            min-width: clamp(120px, 20vw, 200px);
+        }
+
+        /* === COLOR UTILITIES === */
+        .text-amber { color: var(--amber); }
+        .text-orange { color: var(--orange); }
+        .text-rose { color: var(--rose); }
+        .text-cyan { color: var(--cyan); }
+        .text-muted { color: var(--text-muted); }
+        .border-amber { border-color: rgba(245,158,11,0.2); }
+        .border-orange { border-color: rgba(249,115,22,0.2); }
+        .border-rose { border-color: rgba(244,63,94,0.2); }
+        .border-cyan { border-color: rgba(34,211,238,0.2); }
+
+        /* === SECTION-SPECIFIC: TITLE SLIDE === */
+        .title-slide .slide-content {
+            align-items: center;
+            text-align: center;
+        }
+        .title-slide h1 {
+            background: linear-gradient(135deg, var(--amber-light), var(--amber), var(--orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .title-stats {
+            display: flex;
+            gap: clamp(1.5rem, 4vw, 3rem);
+            margin-top: clamp(1rem, 2vh, 2rem);
+        }
+        .title-stats .stat-number { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+        .scroll-prompt {
+            position: absolute;
+            bottom: clamp(1.5rem, 4vh, 3rem);
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--amber);
+            opacity: 0.3;
+            animation: pulse-scroll 2s ease-in-out infinite;
+        }
+        @keyframes pulse-scroll {
+            0%, 100% { opacity: 0.15; transform: translateX(-50%) translateY(0); }
+            50% { opacity: 0.4; transform: translateX(-50%) translateY(4px); }
+        }
+
+        /* === SECTION-SPECIFIC: THE NIGHT (darker bg) === */
+        .night-slide { background: #0a0005; }
+
+        /* === SECTION-SPECIFIC: BEFORE/AFTER === */
+        .before-after {
+            display: flex;
+            gap: clamp(1rem, 3vw, 2.5rem);
+            align-items: stretch;
+        }
+        .before-after > div {
+            flex: 1;
+            text-align: center;
+            padding: clamp(0.75rem, 2vw, 1.5rem);
+            border-radius: 6px;
+        }
+
+        /* === SECTION-SPECIFIC: TIMELINE === */
+        .timeline-entry {
+            display: flex;
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+            align-items: baseline;
+            font-size: var(--body-size);
+        }
+        .timeline-time {
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            min-width: 5ch;
+            opacity: 0.7;
+        }
+        .timeline-text {
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* === SECTION-SPECIFIC: STAT GRID === */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.5rem, 1.5vw, 1.25rem);
+            max-width: min(90vw, 700px);
+        }
+        .stat-grid .card { text-align: center; }
+        .stat-grid .stat-number { font-size: clamp(1.8rem, 4vw, 3.5rem); }
+        @media (max-width: 600px) {
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* === SECTION-SPECIFIC: CLOSING === */
+        .closing-cta {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        /* === SECTION-SPECIFIC: IDENTITY COMPARISON === */
+        .identity-compare {
+            display: flex;
+            gap: clamp(1.5rem, 4vw, 3rem);
+            align-items: center;
+        }
+        .identity-name {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 700;
+            line-height: 1;
+        }
+        .identity-crossed {
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            opacity: 0.4;
+        }
+        .identity-arrow {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            color: var(--text-muted);
+        }
+
+        /* === WORDMARK === */
+        .wordmark {
+            position: fixed;
+            top: clamp(0.75rem, 2vw, 1.5rem);
+            right: clamp(0.75rem, 2vw, 1.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            color: var(--amber);
+            opacity: 0.3;
+            text-decoration: none;
+            letter-spacing: 0.1em;
+            z-index: 100;
+            transition: opacity 0.3s ease;
+        }
+        .wordmark:hover { opacity: 0.7; }
+
+        /* === KEYBOARD HINT === */
+        .keyboard-hint {
+            position: fixed;
+            bottom: clamp(0.75rem, 2vw, 1.5rem);
+            right: clamp(0.75rem, 2vw, 1.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            color: var(--text-muted);
+            opacity: 0.3;
+            z-index: 100;
+        }
+        .keyboard-hint kbd {
+            border: 1px solid var(--text-muted);
+            border-radius: 3px;
+            padding: 0.1em 0.4em;
+            font-family: inherit;
+            font-size: inherit;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- === FIXED UI ELEMENTS === -->
+    <div class="progress-bar" id="progressBar"></div>
+    <nav class="nav-dots" id="navDots"></nav>
+    <div class="slide-counter" id="slideCounter">1 / 18</div>
+    <div class="autoplay-indicator" id="autoplayIndicator">
+        <span class="autoplay-dot"></span>
+        <span>AUTO</span>
+    </div>
+    <span class="wordmark">ROXABI</span>
+    <div class="keyboard-hint">
+        <kbd>&darr;</kbd> <kbd>&uarr;</kbd> navigate &middot; <kbd>A</kbd> autoplay
+    </div>
+
+    <!-- ==============================
+         SLIDE 1: TITLE
+         ============================== -->
+    <section class="slide title-slide" id="title">
+        <div class="glow glow-amber" style="width:50vw;height:50vw;top:-10%;left:25%;"></div>
+        <div class="glow glow-orange" style="width:30vw;height:30vw;bottom:10%;right:5%;opacity:0.3;"></div>
+        <div class="slide-content">
+            <span class="badge badge-amber reveal">Lyra Origin Talks</span>
+            <h1 class="reveal" style="margin-top:clamp(0.5rem,1.5vh,1rem);">52 Jours</h1>
+            <p class="reveal" style="max-width:32ch;margin-top:clamp(0.25rem,0.5vh,0.5rem);font-size:var(--h3-size);font-family:var(--font-display);font-style:italic;color:var(--text-secondary);">
+                De zero a ecosysteme
+            </p>
+            <div class="title-stats reveal">
+                <div class="stat-chip"><span class="stat-number text-amber">52</span><span class="stat-label">jours</span></div>
+                <div class="stat-chip"><span class="stat-number text-orange">6</span><span class="stat-label">repos</span></div>
+                <div class="stat-chip"><span class="stat-number text-cyan">1</span><span class="stat-label">ecosysteme</span></div>
+            </div>
+            <p class="quote quote-amber reveal" style="margin-top:clamp(1rem,3vh,2.5rem);text-align:center;padding-left:0;max-width:42ch;">
+                Ce que tu croyais etre un projet perso etait en realite un laboratoire.
+            </p>
+        </div>
+        <div class="scroll-prompt">Defiler pour commencer</div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 2: WRONG BET
+         ============================== -->
+    <section class="slide" id="wrong-bet">
+        <div class="chrome"><span class="chrome-phase text-rose">WRONG_BET</span><span class="chrome-day">D01-05</span></div>
+        <div class="glow glow-rose" style="width:40vw;height:40vw;top:20%;right:-10%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-rose reveal">D01-05 &middot; 12-17 janvier</span>
+            <h2 class="text-rose reveal">Le Mauvais Pari</h2>
+            <div class="terminal-box border-rose reveal" style="background:var(--bg-card-rose);">
+                <div style="opacity:0.4;">$ mcp-server --workspace google</div>
+                <div style="color:var(--rose);">ERROR: callback rigid, no flexibility</div>
+                <div style="color:var(--rose);">ERROR: opaque response, cannot parse</div>
+                <div style="opacity:0.4;">...</div>
+                <div style="color:var(--rose);">5 days. Zero progress.</div>
+            </div>
+            <p class="reveal">MCP etait bien documente, standard, "la bonne facon". Mais la bonne facon des autres n'est pas toujours la bonne facon pour votre probleme.</p>
+            <div class="flex-row reveal">
+                <span class="badge badge-rose">Cout : 5 jours</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 3: PIVOT SPEED
+         ============================== -->
+    <section class="slide" id="pivot-speed">
+        <div class="chrome"><span class="chrome-phase text-orange">PIVOT</span><span class="chrome-day">D05</span></div>
+        <div class="glow glow-orange" style="width:35vw;height:35vw;bottom:10%;left:5%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-orange reveal">D05 &middot; 17 janvier</span>
+            <h2 class="text-orange reveal">Tue-le. Avance Vite.</h2>
+            <div class="before-after reveal">
+                <div style="border:1px solid rgba(244,63,94,0.2);background:var(--bg-card-rose);">
+                    <span class="badge badge-rose" style="margin-bottom:0.5rem;">AVANT</span>
+                    <div class="identity-name text-rose identity-crossed" style="font-size:clamp(1rem,2vw,1.5rem);">MCP Server</div>
+                </div>
+                <div style="border:1px solid rgba(249,115,22,0.2);background:var(--bg-card-orange);">
+                    <span class="badge badge-orange" style="margin-bottom:0.5rem;">APRES</span>
+                    <div class="identity-name text-orange" style="font-size:clamp(1rem,2vw,1.5rem);">Python Direct</div>
+                </div>
+            </div>
+            <p class="reveal">Decision en un commit. Migration complete. 3 nouveaux skills en 4 jours.</p>
+            <p class="quote quote-orange reveal">Le moment ou tu tues le mauvais pari, le compteur repart.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 4: KILL DARLINGS
+         ============================== -->
+    <section class="slide" id="kill-darlings">
+        <div class="chrome"><span class="chrome-phase text-rose">KILL_IT</span><span class="chrome-day">D12</span></div>
+        <div class="glow glow-rose" style="width:30vw;height:30vw;top:30%;left:-5%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-rose reveal">D12 &middot; Mi-Janvier</span>
+            <h2 class="text-rose reveal">Tuez vos Cheris</h2>
+            <div class="terminal-box border-rose reveal" style="background:var(--bg-card-rose);">
+                <div style="opacity:0.5;">commit cfa0ce3</div>
+                <div style="color:var(--rose);margin-top:0.25rem;">Remove linkedin-jobs skill</div>
+                <div style="opacity:0.4;">not used and ineffective</div>
+            </div>
+            <div class="flex-row reveal">
+                <span class="badge badge-rose">4 jours de travail</span>
+                <span class="badge badge-rose">Supprime en 1 commit</span>
+            </div>
+            <p class="quote quote-amber reveal">Pas de sunk cost fallacy. Un skill qui ne fonctionne pas, supprimez-le.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 5: SHARED FOUNDATION
+         ============================== -->
+    <section class="slide" id="shared-foundation">
+        <div class="chrome"><span class="chrome-phase text-amber">COMPOUND</span><span class="chrome-day">D09-12</span></div>
+        <div class="glow glow-amber" style="width:40vw;height:40vw;bottom:0;right:10%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-amber reveal">D09-12 &middot; Fin Janvier</span>
+            <h2 class="text-amber reveal">Le Premier Investissement Compose</h2>
+            <div class="before-after reveal">
+                <div style="border:1px solid rgba(244,63,94,0.15);text-align:center;">
+                    <div class="stat-number text-rose" style="font-size:clamp(2.5rem,6vw,5rem);">240</div>
+                    <div class="stat-label">lignes / script</div>
+                </div>
+                <div style="border:1px solid rgba(245,158,11,0.2);text-align:center;background:var(--bg-card);">
+                    <div class="stat-number text-amber" style="font-size:clamp(2.5rem,6vw,5rem);">10</div>
+                    <div class="stat-label">lignes / script</div>
+                </div>
+            </div>
+            <p class="reveal">Une couche partagee <span class="mono text-amber">_shared/</span> &mdash; retour immediat sur chaque script ecrit ensuite.</p>
+            <p class="quote quote-amber reveal">Mutualisez a la deuxieme duplication. Pas a la troisieme.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 6: KNOWLEDGE RADAR
+         ============================== -->
+    <section class="slide" id="knowledge-radar">
+        <div class="chrome"><span class="chrome-phase text-cyan">RADAR</span><span class="chrome-day">D22</span></div>
+        <div class="glow glow-cyan" style="width:45vw;height:45vw;top:10%;left:50%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-cyan reveal">D22 &middot; 22 janvier</span>
+            <h2 class="text-cyan reveal">Construisez votre Radar</h2>
+            <div class="flex-row reveal" style="gap:clamp(0.5rem,1.5vw,1.25rem);">
+                <div class="card border-cyan" style="background:var(--bg-card-cyan);text-align:center;">
+                    <div class="stat-number text-cyan">214</div>
+                    <div class="stat-label">X / Twitter</div>
+                </div>
+                <div class="card border-cyan" style="background:var(--bg-card-cyan);text-align:center;">
+                    <div class="stat-number text-cyan">52</div>
+                    <div class="stat-label">Repos GitHub</div>
+                </div>
+                <div class="card border-cyan" style="background:var(--bg-card-cyan);text-align:center;">
+                    <div class="stat-number text-cyan">389</div>
+                    <div class="stat-label">Total</div>
+                </div>
+            </div>
+            <p class="reveal">Pas du bookmarking &mdash; de l'intelligence concurrentielle active. Chaque decision validee ou invalidee en temps reel.</p>
+            <p class="quote quote-cyan reveal">Votre avantage concurrentiel est votre vitesse d'apprentissage, pas votre vitesse de code.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 7: TELEGRAM
+         ============================== -->
+    <section class="slide" id="telegram-anywhere">
+        <div class="chrome"><span class="chrome-phase text-orange">SHIP_IT</span><span class="chrome-day">D22-24</span></div>
+        <div class="glow glow-orange" style="width:35vw;height:35vw;top:50%;right:0%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-orange reveal">D22-24 &middot; 22-24 janvier</span>
+            <h2 class="text-orange reveal">Shippez. Lachez le Bureau.</h2>
+            <div class="flex-row reveal">
+                <span class="badge badge-orange">Premiere session</span>
+                <span class="mono text-orange" style="font-size:clamp(1.5rem,3vw,2.5rem);font-weight:500;">6:34 AM</span>
+            </div>
+            <p class="reveal">Bot Telegram en prod. L'assistant n'est plus attache a une chaise. Mobile, au lit, avant le premier cafe.</p>
+            <div class="flex-row reveal">
+                <span class="badge badge-amber">20 sessions</span>
+                <span class="badge badge-amber">105 messages</span>
+                <span class="badge badge-amber">Jour 1</span>
+            </div>
+            <p class="quote quote-orange reveal">Supprimer une contrainte > ajouter une feature.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 8: INDUSTRIAL TURN
+         ============================== -->
+    <section class="slide" id="industrial-turn">
+        <div class="chrome"><span class="chrome-phase text-amber">PROCESS</span><span class="chrome-day">D26-31</span></div>
+        <div class="glow glow-amber" style="width:40vw;height:40vw;bottom:5%;left:0%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-amber reveal">D26-31 &middot; 26-31 janvier</span>
+            <h2 class="text-amber reveal">Spec d'Abord, Code Ensuite</h2>
+            <div class="before-after reveal">
+                <div style="border:1px solid rgba(244,63,94,0.15);">
+                    <span class="badge badge-rose" style="margin-bottom:0.5rem;">AVANT</span>
+                    <p style="font-family:var(--font-display);font-style:italic;font-size:var(--body-size);color:var(--rose);">Code first.<br>Regrets later.</p>
+                </div>
+                <div style="border:1px solid rgba(245,158,11,0.2);background:var(--bg-card);">
+                    <span class="badge badge-amber" style="margin-bottom:0.5rem;">APRES</span>
+                    <p style="font-family:var(--font-display);font-style:italic;font-size:var(--body-size);color:var(--amber);">Spec first.<br>Code after.</p>
+                </div>
+            </div>
+            <div class="flex-row reveal">
+                <span class="badge badge-amber">259 commits</span>
+                <span class="badge badge-amber">17 jours</span>
+                <span class="badge badge-amber">~15/jour</span>
+            </div>
+            <p class="reveal">Le systeme est stable. Il peut maintenant traiter des requetes complexes sans planter.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 9: PATCH NOTES
+         ============================== -->
+    <section class="slide" id="patch-notes">
+        <div class="chrome"><span class="chrome-phase text-amber">CHANGELOG</span><span class="chrome-day">D31</span></div>
+        <div class="glow glow-amber" style="width:30vw;height:30vw;top:20%;right:0%;opacity:0.3;"></div>
+        <div class="slide-content flex-col">
+            <h2 class="text-amber reveal">Ce que vous Supprimez vous Definit</h2>
+            <div class="terminal-box border-amber reveal" style="background:var(--bg-card);max-width:45ch;">
+                <div class="text-amber" style="margin-bottom:0.75rem;">PATCH 1.4.0 &mdash; 31 janvier</div>
+                <div style="margin-bottom:0.5rem;">
+                    <span class="text-rose" style="opacity:0.8;">REMOVED</span>
+                    <div style="opacity:0.6;padding-left:1rem;">Linear (trop lourd pour solo builder)</div>
+                    <div style="opacity:0.6;padding-left:1rem;">261 erreurs mypy (resolues en 1 commit)</div>
+                </div>
+                <div>
+                    <span class="text-amber">ADDED</span>
+                    <div style="opacity:0.6;padding-left:1rem;">GitHub Issues comme systeme officiel</div>
+                    <div style="opacity:0.6;padding-left:1rem;">Config mypy stricte</div>
+                    <div style="opacity:0.6;padding-left:1rem;">Persistance de sessions JSONL</div>
+                </div>
+            </div>
+            <p class="quote quote-amber reveal">Chaque suppression est une declaration sur ce qui compte.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 10: THE DAY
+         ============================== -->
+    <section class="slide" id="the-day">
+        <div class="chrome"><span class="chrome-phase text-orange">EXPLOSION</span><span class="chrome-day">D47</span></div>
+        <div class="glow glow-orange" style="width:50vw;height:50vw;top:10%;left:25%;"></div>
+        <div class="glow glow-amber" style="width:25vw;height:25vw;bottom:10%;right:5%;opacity:0.3;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-orange reveal">D47 &middot; 28 fevrier</span>
+            <h2 class="text-orange reveal">Un Jour. Trois Repos.</h2>
+            <div class="flex-row reveal" style="gap:clamp(0.5rem,1.5vw,1rem);">
+                <div class="card border-orange" style="background:var(--bg-card-orange);">
+                    <div class="mono text-orange" style="font-size:var(--body-size);font-weight:500;">voiceCLI</div>
+                    <p style="font-size:var(--small-size);margin-top:0.25rem;">TTS + STT CLI &mdash; ne du besoin vocal de Telegram</p>
+                </div>
+                <div class="card border-orange" style="background:var(--bg-card-orange);">
+                    <div class="mono text-orange" style="font-size:var(--body-size);font-weight:500;">roxabi-plugins</div>
+                    <p style="font-size:var(--small-size);margin-top:0.25rem;">Marketplace open-source &mdash; 1 &rarr; 11 plugins en 4 jours</p>
+                </div>
+                <div class="card border-orange" style="background:var(--bg-card-orange);">
+                    <div class="mono text-orange" style="font-size:var(--body-size);font-weight:500;">roxabi-claude-config</div>
+                    <p style="font-size:var(--small-size);margin-top:0.25rem;">Config partagee + alias lyra='ssh mickael@machine1'</p>
+                </div>
+            </div>
+            <p class="quote quote-orange reveal">Les ecosystemes n'emergent pas de la planification. Ils emergent du compounding.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 11: VOICE
+         ============================== -->
+    <section class="slide" id="voice">
+        <div class="chrome"><span class="chrome-phase text-cyan">NEW_MODE</span><span class="chrome-day">D47</span></div>
+        <div class="glow glow-cyan" style="width:45vw;height:45vw;bottom:5%;left:10%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-cyan reveal">D47 &middot; 28 fevrier</span>
+            <h2 class="text-cyan reveal">Une Nouvelle Modalite</h2>
+            <div class="before-after reveal">
+                <div style="border:1px solid rgba(244,63,94,0.15);text-align:center;">
+                    <span class="badge badge-rose" style="margin-bottom:0.5rem;">AVANT</span>
+                    <div class="stat-number text-rose" style="font-size:clamp(2rem,5vw,4rem);">~15s</div>
+                    <div class="stat-label">/ message</div>
+                </div>
+                <div style="border:1px solid rgba(34,211,238,0.2);text-align:center;background:var(--bg-card-cyan);">
+                    <span class="badge badge-cyan" style="margin-bottom:0.5rem;">APRES (qwen-fast)</span>
+                    <div class="stat-number text-cyan" style="font-size:clamp(2rem,5vw,4rem);">~2s</div>
+                    <div class="stat-label">/ message</div>
+                </div>
+            </div>
+            <div class="flex-row reveal">
+                <span class="badge badge-cyan">Qwen-fast + CUDA graphs = 5-9x plus rapide</span>
+            </div>
+            <p class="quote quote-cyan reveal">Le bon investissement hardware se rembourse en une journee.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 12: THE NIGHT
+         ============================== -->
+    <section class="slide night-slide" id="the-night">
+        <div class="chrome"><span class="chrome-phase text-rose">TURNING_PT</span><span class="chrome-day">D50</span></div>
+        <div class="glow glow-rose" style="width:50vw;height:50vw;top:20%;left:30%;opacity:0.6;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-rose reveal">D50 &middot; 1er mars</span>
+            <h2 class="text-rose reveal">La Nuit ou Tout a Change</h2>
+            <div class="flex-col reveal" style="gap:clamp(0.25rem,0.8vh,0.5rem);">
+                <div class="timeline-entry"><span class="timeline-time text-rose">00:14</span><span class="timeline-text">Genere un vocal riche d'emotion</span></div>
+                <div class="timeline-entry"><span class="timeline-time text-rose">00:50</span><span class="timeline-text">On design la voix ensemble</span></div>
+                <div class="timeline-entry"><span class="timeline-time text-rose">01:24</span><span class="timeline-text">Premier profil vocal : intellectuelle, timide mais brillante</span></div>
+                <div class="timeline-entry"><span class="timeline-time text-rose">08:26</span><span class="timeline-text">Pourquoi on est passe de Lyra a Solene ?</span></div>
+                <div class="timeline-entry"><span class="timeline-time text-rose">22:24</span><span class="timeline-text">Fais-moi un vocal de 5 min sur ton nouveau moteur</span></div>
+            </div>
+            <div class="flex-row reveal">
+                <span class="badge badge-rose">38 sessions</span>
+                <span class="badge badge-rose">266 messages</span>
+                <span class="badge badge-rose">1 jour</span>
+            </div>
+            <p class="quote quote-rose reveal">La premiere fois que tu demandes a ta creation de s'expliquer &mdash; c'est a ce moment qu'elle devient reelle.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 13: LYRA NOT SOLENE
+         ============================== -->
+    <section class="slide" id="lyra-not-solene">
+        <div class="chrome"><span class="chrome-phase text-amber">IDENTITY</span><span class="chrome-day">D50</span></div>
+        <div class="glow glow-amber" style="width:40vw;height:40vw;top:30%;right:10%;"></div>
+        <div class="slide-content flex-col" style="align-items:center;text-align:center;">
+            <span class="badge badge-amber reveal">Le Test d'Identite</span>
+            <h2 class="text-amber reveal">Les Noms Comptent</h2>
+            <div class="identity-compare reveal">
+                <div>
+                    <span class="badge badge-rose" style="margin-bottom:0.5rem;">TESTE</span>
+                    <div class="identity-name text-rose identity-crossed">Solene</div>
+                </div>
+                <span class="identity-arrow">&rarr;</span>
+                <div>
+                    <span class="badge badge-amber" style="margin-bottom:0.5rem;">LA REPONSE</span>
+                    <div class="identity-name text-amber">Lyra</div>
+                </div>
+            </div>
+            <p class="reveal" style="text-align:center;font-family:var(--font-display);font-style:italic;font-size:var(--h3-size);">L'electron libre &mdash; non liee a un atome fixe.</p>
+            <p class="quote quote-amber reveal" style="text-align:center;padding-left:0;">Le nom est le concept. Trouvez le bon concept.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 14: THE ECOSYSTEM
+         ============================== -->
+    <section class="slide" id="the-ecosystem">
+        <div class="chrome"><span class="chrome-phase text-cyan">ECOSYSTEM</span><span class="chrome-day">D47-54</span></div>
+        <div class="glow glow-cyan" style="width:50vw;height:50vw;top:10%;left:25%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-cyan reveal">6 REPOS &middot; 1 ECOSYSTEME</span>
+            <h2 class="text-cyan reveal">Emergence, Pas Planification</h2>
+            <div class="flex-col reveal" style="gap:clamp(0.3rem,0.8vh,0.5rem);max-width:50ch;">
+                <div class="card border-cyan" style="background:var(--bg-card-cyan);padding:clamp(0.4rem,1vw,0.75rem);">
+                    <span class="mono text-cyan" style="font-size:var(--small-size);">2ndBrain</span>
+                    <span style="font-size:var(--small-size);color:var(--text-muted);"> &rarr; process de dev, decisions d'architecture</span>
+                </div>
+                <div class="card border-cyan" style="background:var(--bg-card-cyan);padding:clamp(0.4rem,1vw,0.75rem);">
+                    <span class="mono text-cyan" style="font-size:var(--small-size);">roxabi_boilerplate</span>
+                    <span style="font-size:var(--small-size);color:var(--text-muted);"> &rarr; consomme dev-core des le jour 1</span>
+                </div>
+                <div class="card border-cyan" style="background:var(--bg-card-cyan);padding:clamp(0.4rem,1vw,0.75rem);">
+                    <span class="mono text-cyan" style="font-size:var(--small-size);">voiceCLI + roxabi-plugins + claude-config</span>
+                    <span style="font-size:var(--small-size);color:var(--text-muted);"> &rarr; nes en 1 jour</span>
+                </div>
+            </div>
+            <p class="quote quote-cyan reveal">On ne construit pas un ecosysteme. On construit des choses qui se meritent.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 15: THE NUMBERS
+         ============================== -->
+    <section class="slide" id="the-numbers">
+        <div class="chrome"><span class="chrome-phase text-amber">METRICS</span><span class="chrome-day">&mdash;</span></div>
+        <div class="glow glow-amber" style="width:50vw;height:50vw;top:25%;left:25%;opacity:0.4;"></div>
+        <div class="slide-content flex-col" style="align-items:center;">
+            <h2 class="text-amber reveal">52 Jours</h2>
+            <div class="stat-grid reveal">
+                <div class="card border-amber" style="background:var(--bg-card);">
+                    <div class="stat-number text-amber">462</div>
+                    <div class="stat-label">Commits</div>
+                </div>
+                <div class="card border-amber" style="background:var(--bg-card);">
+                    <div class="stat-number text-amber">389</div>
+                    <div class="stat-label">Entrees de veille</div>
+                </div>
+                <div class="card border-amber" style="background:var(--bg-card);">
+                    <div class="stat-number text-amber">194</div>
+                    <div class="stat-label">Sessions bot</div>
+                </div>
+                <div class="card border-amber" style="background:var(--bg-card);">
+                    <div class="stat-number text-orange">52</div>
+                    <div class="stat-label">Jours</div>
+                </div>
+                <div class="card border-amber" style="background:var(--bg-card);">
+                    <div class="stat-number text-orange">11</div>
+                    <div class="stat-label">Plugins</div>
+                </div>
+                <div class="card border-amber" style="background:var(--bg-card);">
+                    <div class="stat-number text-orange">6</div>
+                    <div class="stat-label">Repos actifs</div>
+                </div>
+            </div>
+            <p class="quote quote-amber reveal" style="text-align:center;padding-left:0;">Chaque chiffre est une decision prise, pas une feature livree.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 16: LYRA IN 4 DAYS
+         ============================== -->
+    <section class="slide" id="lyra-in-4-days">
+        <div class="chrome"><span class="chrome-phase text-orange">OUTCOME</span><span class="chrome-day">D52-55</span></div>
+        <div class="glow glow-orange" style="width:45vw;height:45vw;bottom:10%;right:5%;"></div>
+        <div class="slide-content flex-col">
+            <span class="badge badge-orange reveal">D52-55 &middot; 1-4 mars</span>
+            <h2 class="text-orange reveal">52 Jours &rarr; 4 Jours</h2>
+            <div class="flex-col reveal" style="gap:clamp(0.3rem,0.8vh,0.5rem);">
+                <div class="timeline-entry"><span class="badge badge-orange" style="min-width:3ch;">J+1</span><span class="timeline-text">Squelette hub &mdash; bus asyncio + bindings + pools</span></div>
+                <div class="timeline-entry"><span class="badge badge-orange" style="min-width:3ch;">J+2</span><span class="timeline-text">Adaptateurs Telegram + Discord</span></div>
+                <div class="timeline-entry"><span class="badge badge-orange" style="min-width:3ch;">J+3</span><span class="timeline-text">CI, pre-commit, 8 ADRs documentes des le depart</span></div>
+                <div class="timeline-entry"><span class="badge badge-orange" style="min-width:3ch;">J+4</span><span class="timeline-text">SimpleLyraAgent &mdash; premier message E2E</span></div>
+            </div>
+            <p class="quote quote-orange reveal">52 jours d'apprentissages comprimes en 4 jours de construction. C'est a ca que sert un laboratoire.</p>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 17: THE LESSON
+         ============================== -->
+    <section class="slide" id="the-lesson">
+        <div class="chrome"><span class="chrome-phase text-amber">LESSON</span><span class="chrome-day">&mdash;</span></div>
+        <div class="glow glow-amber" style="width:60vw;height:60vw;top:20%;left:20%;opacity:0.5;"></div>
+        <div class="slide-content flex-col" style="align-items:center;text-align:center;">
+            <h2 class="text-amber reveal">Le Laboratoire</h2>
+            <p class="reveal" style="font-family:var(--font-display);font-style:italic;font-size:clamp(1.2rem,3vw,2.2rem);color:var(--amber-light);max-width:28ch;text-align:center;margin:clamp(0.5rem,2vh,1.5rem) 0;">
+                2ndBrain etait un laboratoire. Tout le reste est le moteur.
+            </p>
+            <div class="flex-col reveal" style="gap:clamp(0.3rem,0.8vh,0.6rem);align-items:center;">
+                <span class="badge badge-amber">Les mauvais paris sont des donnees</span>
+                <span class="badge badge-amber">Tuer ses cheris sans regret</span>
+                <span class="badge badge-amber">Capitaliser tot &mdash; fondations partagees</span>
+                <span class="badge badge-amber">Votre labo est votre avantage concurrentiel</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==============================
+         SLIDE 18: CLOSING
+         ============================== -->
+    <section class="slide" id="closing">
+        <div class="glow glow-amber" style="width:50vw;height:50vw;top:20%;left:25%;opacity:0.6;"></div>
+        <div class="glow glow-orange" style="width:30vw;height:30vw;bottom:10%;right:10%;opacity:0.3;"></div>
+        <div class="slide-content flex-col" style="align-items:center;text-align:center;">
+            <h2 class="text-amber reveal">Construisez votre Labo</h2>
+            <p class="reveal" style="max-width:38ch;text-align:center;">L'ecosysteme que vous voyez aujourd'hui n'a pas commence comme un ecosysteme. Il a commence par un mauvais pari &mdash; et la discipline de le tuer en 5 jours.</p>
+            <div class="closing-cta text-amber reveal" style="margin:clamp(1rem,3vh,2.5rem) 0;">
+                C'est quoi, votre laboratoire ?
+            </div>
+            <div class="flex-col reveal" style="align-items:center;gap:0.5rem;">
+                <span class="badge badge-amber">FIND LYRA</span>
+                <span class="mono text-muted" style="font-size:var(--small-size);">github.com/Roxabi</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- === JAVASCRIPT === -->
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.autoplayActive = false;
+                this.autoplayInterval = null;
+                this.autoplayDelay = 30000; /* 30s per slide */
+
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupNavDots();
+                this.updateUI();
+            }
+
+            /* --- Intersection Observer: triggers .visible on scroll --- */
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = Array.from(this.slides).indexOf(entry.target);
+                            if (idx !== -1) {
+                                this.currentSlide = idx;
+                                this.updateUI();
+                            }
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            /* --- Keyboard navigation --- */
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key) {
+                        case 'ArrowDown':
+                        case 'ArrowRight':
+                        case ' ':
+                        case 'PageDown':
+                            e.preventDefault();
+                            this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                            break;
+                        case 'ArrowUp':
+                        case 'ArrowLeft':
+                        case 'PageUp':
+                            e.preventDefault();
+                            this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            this.goToSlide(0);
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            this.goToSlide(this.slides.length - 1);
+                            break;
+                        case 'a':
+                        case 'A':
+                            this.toggleAutoplay();
+                            break;
+                    }
+                });
+            }
+
+            /* --- Navigation dots --- */
+            setupNavDots() {
+                const nav = document.getElementById('navDots');
+                this.slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'nav-dot';
+                    dot.setAttribute('aria-label', `Slide ${i + 1}`);
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    nav.appendChild(dot);
+                });
+            }
+
+            /* --- Go to specific slide --- */
+            goToSlide(index) {
+                this.slides[index].scrollIntoView({ behavior: 'smooth' });
+            }
+
+            /* --- Update all UI elements --- */
+            updateUI() {
+                /* Counter */
+                document.getElementById('slideCounter').textContent =
+                    `${this.currentSlide + 1} / ${this.slides.length}`;
+
+                /* Progress bar */
+                const progress = ((this.currentSlide + 1) / this.slides.length) * 100;
+                document.getElementById('progressBar').style.width = `${progress}%`;
+
+                /* Nav dots */
+                document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === this.currentSlide);
+                });
+            }
+
+            /* --- Autoplay toggle (press A) --- */
+            toggleAutoplay() {
+                this.autoplayActive = !this.autoplayActive;
+                const indicator = document.getElementById('autoplayIndicator');
+
+                if (this.autoplayActive) {
+                    indicator.classList.add('active');
+                    this.autoplayInterval = setInterval(() => {
+                        if (this.currentSlide < this.slides.length - 1) {
+                            this.goToSlide(this.currentSlide + 1);
+                        } else {
+                            this.toggleAutoplay(); /* Stop at end */
+                        }
+                    }, this.autoplayDelay);
+                } else {
+                    indicator.classList.remove('active');
+                    clearInterval(this.autoplayInterval);
+                }
+            }
+        }
+
+        /* --- Counter animation for stat numbers --- */
+        function animateCounters() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !entry.target.dataset.animated) {
+                        entry.target.dataset.animated = 'true';
+                        const target = parseInt(entry.target.textContent);
+                        if (isNaN(target)) return;
+
+                        const duration = 1200;
+                        const start = performance.now();
+                        const from = 0;
+
+                        function update(now) {
+                            const elapsed = now - start;
+                            const progress = Math.min(elapsed / duration, 1);
+                            const eased = 1 - Math.pow(1 - progress, 3);
+                            entry.target.textContent = Math.round(from + (target - from) * eased);
+                            if (progress < 1) requestAnimationFrame(update);
+                        }
+                        requestAnimationFrame(update);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            document.querySelectorAll('.stat-number').forEach(el => {
+                if (!isNaN(parseInt(el.textContent)) && el.textContent.match(/^\d+$/)) {
+                    observer.observe(el);
+                }
+            });
+        }
+
+        /* --- Init --- */
+        const presentation = new SlidePresentation();
+        animateCounters();
+    </script>
+</body>
+</html>
