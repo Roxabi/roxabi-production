@@ -16,3 +16,5 @@ export { BrandBadge } from "./BrandBadge";
 export type { BrandBadgeProps } from "./BrandBadge";
 export { FlowDiagram } from "./FlowDiagram";
 export type { FlowDiagramProps, FlowNode, FlowEdge } from "./FlowDiagram";
+export { GitHubCard } from "./GitHubCard";
+export type { GitHubCardProps } from "./GitHubCard";

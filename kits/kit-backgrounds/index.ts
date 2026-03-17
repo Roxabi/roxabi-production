@@ -1,3 +1,5 @@
+export { BokehBackground } from './BokehBackground'
+export type { BokehBackgroundProps } from './BokehBackground'
 export { GradientBackground } from './GradientBackground'
 export type { GradientBackgroundProps } from './GradientBackground'
 export { ParticleField } from './ParticleField'
