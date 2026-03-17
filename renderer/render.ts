@@ -1,12 +1,12 @@
 import puppeteer from 'puppeteer'
-import { execSync } from 'child_process'
+import { spawnSync } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
-import { codecFlags, type RenderConfig } from './config'
+import { codecArgs, validateCompositionId, MAX_DURATION_FRAMES, type RenderConfig } from './config'
 
 export async function render(config: RenderConfig) {
   const {
-    compositionId,
+    compositionId: rawId,
     outputPath,
     width = 1920,
     height = 1080,
@@ -16,11 +16,12 @@ export async function render(config: RenderConfig) {
     audioPath,
   } = config
 
+  const compositionId = validateCompositionId(rawId)
+
   const serverUrl = `http://localhost:3001`
   const framesDir = path.join('/tmp', `roxvid-${compositionId}-${Date.now()}`)
   fs.mkdirSync(framesDir, { recursive: true })
 
-  // Ensure output directory exists
   const outDir = path.dirname(outputPath)
   if (outDir) fs.mkdirSync(outDir, { recursive: true })
 
@@ -35,12 +36,17 @@ export async function render(config: RenderConfig) {
   const page = await browser.newPage()
   await page.setViewport({ width, height, deviceScaleFactor: 1 })
 
-  await page.goto(`${serverUrl}?composition=${compositionId}&mode=render`)
+  await page.goto(`${serverUrl}?composition=${encodeURIComponent(compositionId)}&mode=render`)
   await page.waitForSelector('#render-root', { timeout: 10000 })
 
-  const durationInFrames = await page.evaluate(() => {
+  const rawDuration = await page.evaluate(() => {
     return (window as any).__ROXVID_DURATION__ || 900
   })
+
+  const durationInFrames = Math.min(
+    typeof rawDuration === 'number' && isFinite(rawDuration) ? rawDuration : 900,
+    MAX_DURATION_FRAMES,
+  )
 
   console.log(`Frames: ${durationInFrames} (${(durationInFrames / fps).toFixed(1)}s)`)
 
@@ -63,16 +69,19 @@ export async function render(config: RenderConfig) {
   console.log('\n  Frames captured. Encoding...')
   await browser.close()
 
-  const codecFlag = codecFlags[codec]?.(crf) ?? codecFlags.h264(crf)
-  let ffmpegCmd = `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame-%06d.png" ${codecFlag}`
+  const codecArgList = codecArgs[codec]?.(crf) ?? codecArgs.h264(crf)
+  const ffmpegArgs = [
+    '-y', '-framerate', String(fps),
+    '-i', `${framesDir}/frame-%06d.png`,
+    ...codecArgList,
+    ...(audioPath ? ['-i', audioPath, '-c:a', 'aac', '-b:a', '192k', '-shortest'] : []),
+    outputPath,
+  ]
 
-  if (audioPath) {
-    ffmpegCmd += ` -i "${audioPath}" -c:a aac -b:a 192k -shortest`
+  const result = spawnSync('ffmpeg', ffmpegArgs, { stdio: 'inherit' })
+  if (result.status !== 0) {
+    throw new Error(`FFmpeg exited with code ${result.status}`)
   }
-
-  ffmpegCmd += ` "${outputPath}"`
-
-  execSync(ffmpegCmd, { stdio: 'inherit' })
 
   fs.rmSync(framesDir, { recursive: true })
 
