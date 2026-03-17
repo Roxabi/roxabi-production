@@ -1,11 +1,13 @@
 import React from 'react'
 import { useCurrentFrame } from '../../core'
 
-export const FlickerReveal: React.FC<{
+export interface FlickerRevealProps {
   delay?: number
   duration?: number
   children: React.ReactNode
-}> = ({ delay = 0, duration = 15, children }) => {
+}
+
+export const FlickerReveal: React.FC<FlickerRevealProps> = ({ delay = 0, duration = 15, children }) => {
   const frame = useCurrentFrame()
   const elapsed = frame - delay
   if (elapsed < 0) return null

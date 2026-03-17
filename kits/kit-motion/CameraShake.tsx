@@ -1,10 +1,12 @@
 import React from 'react'
 import { useCurrentFrame } from '../../core'
 
-export const CameraShake: React.FC<{
+export interface CameraShakeProps {
   intensity?: number
   children: React.ReactNode
-}> = ({ intensity = 2, children }) => {
+}
+
+export const CameraShake: React.FC<CameraShakeProps> = ({ intensity = 2, children }) => {
   const frame = useCurrentFrame()
   const x = Math.sin(frame / 23) * intensity
   const y = Math.cos(frame / 31) * intensity * 0.7

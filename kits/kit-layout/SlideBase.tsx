@@ -1,4 +1,5 @@
 import React from 'react'
+import { useVideoConfig } from '../../core'
 import { COLORS } from '../../themes'
 
 export interface SlideBaseProps {
@@ -6,11 +7,13 @@ export interface SlideBaseProps {
   children: React.ReactNode
 }
 
-export const SlideBase: React.FC<SlideBaseProps> = ({ bg = COLORS.bg, children }) => (
+export const SlideBase: React.FC<SlideBaseProps> = ({ bg = COLORS.bg, children }) => {
+  const { width, height } = useVideoConfig()
+  return (
   <div
     style={{
-      width: 1920,
-      height: 1080,
+      width,
+      height,
       background: bg,
       display: 'flex',
       flexDirection: 'column',
@@ -24,4 +27,5 @@ export const SlideBase: React.FC<SlideBaseProps> = ({ bg = COLORS.bg, children }
   >
     {children}
   </div>
-)
+  )
+}

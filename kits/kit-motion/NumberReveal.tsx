@@ -2,12 +2,14 @@ import React from 'react'
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from '../../core'
 import { COLORS } from '../../themes'
 
-export const NumberReveal: React.FC<{
+export interface NumberRevealProps {
   value: string
   delay?: number
   color?: string
   size?: number
-}> = ({ value, delay = 0, color = COLORS.amber, size = 120 }) => {
+}
+
+export const NumberReveal: React.FC<NumberRevealProps> = ({ value, delay = 0, color = COLORS.amber, size = 120 }) => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
   const s = spring({

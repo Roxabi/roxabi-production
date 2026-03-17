@@ -1,11 +1,13 @@
 import React from 'react'
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from '../../core'
 
-export const ScalePop: React.FC<{
+export interface ScalePopProps {
   delay?: number
   children: React.ReactNode
   style?: React.CSSProperties
-}> = ({ delay = 0, children, style }) => {
+}
+
+export const ScalePop: React.FC<ScalePopProps> = ({ delay = 0, children, style }) => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
   const s = spring({

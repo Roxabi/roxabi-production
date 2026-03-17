@@ -1,6 +1,5 @@
 import { interpolate, spring } from '../core'
 import type { SpringConfig } from '../core'
-export { palettes, type PaletteName } from '../themes'
 
 /** Clamp interpolate shorthand */
 export const cInterpolate = (

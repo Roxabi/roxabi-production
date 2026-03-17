@@ -2,11 +2,13 @@ import React from 'react'
 import { useCurrentFrame } from '../../core'
 import { ACCENT, type AccentColor } from '../../themes'
 
-export const PulseGlow: React.FC<{
+export interface PulseGlowProps {
   accent: AccentColor
   children: React.ReactNode
   speed?: number
-}> = ({ accent, children, speed = 40 }) => {
+}
+
+export const PulseGlow: React.FC<PulseGlowProps> = ({ accent, children, speed = 40 }) => {
   const frame = useCurrentFrame()
   const pulse = 0.6 + Math.sin(frame / speed) * 0.4
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Player } from './Player'
-import type { CompositionConfig } from '../core/types'
+import type { CompositionConfig } from '../core'
 
 export const Studio: React.FC<{
   compositions: CompositionConfig[]

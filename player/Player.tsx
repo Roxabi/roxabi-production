@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
-import { FrameProvider } from '../core/context'
-import type { VideoConfig, CompositionConfig } from '../core/types'
+import { FrameProvider } from '../core'
+import type { VideoConfig, CompositionConfig } from '../core'
 
 export const Player: React.FC<{
   composition: CompositionConfig

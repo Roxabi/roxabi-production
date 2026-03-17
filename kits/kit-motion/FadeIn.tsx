@@ -1,12 +1,14 @@
 import React from 'react'
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from '../../core'
 
-export const FadeIn: React.FC<{
+export interface FadeInProps {
   delay?: number
   children: React.ReactNode
   direction?: 'up' | 'left' | 'right'
   style?: React.CSSProperties
-}> = ({ delay = 0, children, direction = 'up', style }) => {
+}
+
+export const FadeIn: React.FC<FadeInProps> = ({ delay = 0, children, direction = 'up', style }) => {
   const frame = useCurrentFrame()
   const { fps } = useVideoConfig()
   const s = spring({ frame: frame - delay, fps, config: { damping: 18, stiffness: 80 } })
