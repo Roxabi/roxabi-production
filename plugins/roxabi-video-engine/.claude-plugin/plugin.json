@@ -1,0 +1,9 @@
+{
+  "name": "roxabi-video-engine",
+  "version": "0.1.0",
+  "description": "Programmatic video generation engine — 55 React components across 13 kits, frame-based animation, headless rendering to MP4.",
+  "author": {
+    "name": "Roxabi",
+    "url": "https://github.com/Roxabi"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "roxabi-video-engine": {
+      "source": {
+        "source": "directory",
+        "path": "/home/mickael/projects/roxabi-production"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "roxabi-video-engine@roxabi-video-engine": true
+  }
+}
