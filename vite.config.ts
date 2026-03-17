@@ -5,6 +5,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   root: 'dev',
+  server: {
+    port: 3001,
+  },
   resolve: {
     alias: {
       '@core': path.resolve(__dirname, 'core'),

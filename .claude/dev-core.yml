@@ -1,0 +1,10 @@
+# dev-core plugin configuration
+# 3-tier fallback: this file → process.env → gh CLI (github_repo only)
+github_repo: Roxabi/roxabi-production
+gh_project_id: PVT_kwDOB8J6DM4BSArL
+status_field_id: PVTSSF_lADOB8J6DM4BSArLzg_q10Q
+size_field_id: PVTSSF_lADOB8J6DM4BSArLzg_q13A
+priority_field_id: PVTSSF_lADOB8J6DM4BSArLzg_q13s
+status_options_json: '{"Backlog":"567c9cf6","Analysis":"96da41b7","Specs":"e8df05e7","In Progress":"b840fe3f","Review":"ffedac4b","Done":"343b326a"}'
+size_options_json: '{"XS":"c0a45a45","S":"3efceda3","M":"722895df","L":"c0194577","XL":"6e1a5bc6"}'
+priority_options_json: '{"P0 - Urgent":"92dc92a4","P1 - High":"60a4e0c4","P2 - Medium":"e1a20600","P3 - Low":"4548659c"}'

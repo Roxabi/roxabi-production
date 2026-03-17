@@ -8,6 +8,7 @@
     }
   },
   "enabledPlugins": {
-    "roxabi-video-engine@roxabi-video-engine": true
+    "roxabi-video-engine@roxabi-video-engine": true,
+    "roxabi-marketplace@web-intel": true
   }
 }
