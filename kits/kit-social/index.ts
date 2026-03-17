@@ -1,0 +1,6 @@
+export { LowerThird } from './LowerThird'
+export type { LowerThirdProps } from './LowerThird'
+export { SocialCard } from './SocialCard'
+export type { SocialCardProps } from './SocialCard'
+export { CaptionOverlay } from './CaptionOverlay'
+export type { CaptionOverlayProps, CaptionWord } from './CaptionOverlay'
