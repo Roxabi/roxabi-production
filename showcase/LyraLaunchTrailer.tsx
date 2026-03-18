@@ -28,10 +28,15 @@ import { LyraLogo } from '../kits/kit-lyra/LyraLogo'
 // ─── Forge palette ─────────────────────────────────────────────────────────────
 const BG = '#0a0a0f'
 const ORANGE = '#e85d04'
+const EMBER = '#f97316'
 const WHITE = '#fafafa'
 const GRAY = '#6b7280'
 const GRAY2 = '#9ca3af'
 const BORDER = '#2a2a35'
+
+// ─── Typography — swap this constant for font variations ────────────────────────
+const HEADING_FONT = "'Outfit', sans-serif"
+const HEADING_WEIGHT = 800
 
 // ─── Reusable badge ────────────────────────────────────────────────────────────
 const ForgeBadge: React.FC<{
@@ -91,8 +96,8 @@ const S01Hook: React.FC = () => {
             fontSize: 38,
             textAlign: 'center',
             letterSpacing: '0.03em',
-            fontFamily: 'Space Grotesk, system-ui',
-            fontWeight: 700,
+            fontFamily: HEADING_FONT,
+            fontWeight: HEADING_WEIGHT,
           }}
         />
 
@@ -245,8 +250,8 @@ const S02Problem: React.FC = () => {
             </div>
             <div
               style={{
-                fontFamily: 'Space Grotesk, system-ui',
-                fontWeight: 700,
+                fontFamily: HEADING_FONT,
+                fontWeight: HEADING_WEIGHT,
                 fontSize: 22,
                 color: WHITE,
               }}
@@ -300,10 +305,10 @@ const S02Problem: React.FC = () => {
             key={line.text}
             style={{
               opacity: cInterpolate(frame, [line.start, line.start + 22], [0, 1]),
-              fontFamily: 'Space Grotesk, system-ui',
+              fontFamily: HEADING_FONT,
               fontSize: 28,
               color: GRAY2,
-              fontWeight: 400,
+              fontWeight: 500,
             }}
           >
             {line.text}
@@ -371,7 +376,7 @@ const S03Reveal: React.FC = () => {
         </div>
       </AbsoluteFill>
 
-      {/* Lyra logo + Questrial wordmark — entrance at f160 */}
+      {/* Lyra logo + Outfit wordmark — entrance at f160 */}
       <AbsoluteFill
         style={{
           alignItems: 'center',
@@ -383,20 +388,18 @@ const S03Reveal: React.FC = () => {
       >
         <LyraLogo size={140} delay={160} />
 
-        {/* LYRA in Questrial with brand gradient */}
+        {/* LYRA in Outfit 800 with forge glow */}
         <div
           style={{
             opacity: cInterpolate(frame, [185, 215], [0, 1]),
             transform: `translateY(${cInterpolate(frame, [185, 215], [18, 0])}px)`,
-            fontFamily: 'Questrial, Century Gothic, sans-serif',
-            fontWeight: 300,
+            fontFamily: HEADING_FONT,
+            fontWeight: HEADING_WEIGHT,
             fontSize: 100,
-            letterSpacing: '0.30em',
-            paddingLeft: '0.30em', // optical balance for tracking
-            background: 'linear-gradient(135deg, #b0c4de 0%, #eef4ff 30%, #00c8e0 60%, #f0a030 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
+            letterSpacing: '0.25em',
+            paddingLeft: '0.25em',
+            color: WHITE,
+            textShadow: `0 0 24px rgba(232,93,4,0.45), 0 0 60px rgba(232,93,4,0.18)`,
             lineHeight: 1,
           }}
         >
@@ -419,7 +422,7 @@ const S03Reveal: React.FC = () => {
       </AbsoluteFill>
 
       {/* Light sweep on crystallize */}
-      <LightSweep delay={158} color="#00c8e0" width={18} />
+      <LightSweep delay={158} color={ORANGE} width={18} />
 
       <FilmGrain opacity={0.05} />
       <Vignette intensity={0.62} />
@@ -682,9 +685,14 @@ const S06Tagline: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'center',
           flexDirection: 'column',
-          gap: 30,
+          gap: 24,
         }}
       >
+        {/* Forge diamond logo — prominent centered */}
+        <div style={{ opacity: cInterpolate(frame, [0, 30], [0, 1]) }}>
+          <LyraLogo size={140} delay={5} />
+        </div>
+
         {/* Main tagline — word-by-word bounce */}
         <StaggeredWords
           text="YOUR INTELLIGENCE, COMPOUNDED"
@@ -693,8 +701,8 @@ const S06Tagline: React.FC = () => {
           startAt={10}
           style={{
             fontSize: 68,
-            fontFamily: 'Space Grotesk, system-ui',
-            fontWeight: 700,
+            fontFamily: HEADING_FONT,
+            fontWeight: HEADING_WEIGHT,
             letterSpacing: '0.02em',
             color: WHITE,
             textAlign: 'center',
@@ -728,18 +736,6 @@ const S06Tagline: React.FC = () => {
           github.com/Roxabi/lyra
         </div>
       </AbsoluteFill>
-
-      {/* Logo watermark — bottom right */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 52,
-          right: 56,
-          opacity: cInterpolate(frame, [50, 80], [0, 0.55]),
-        }}
-      >
-        <LyraLogo size={42} delay={50} />
-      </div>
 
       {/* Corner cursor */}
       <div
