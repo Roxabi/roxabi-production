@@ -73,8 +73,9 @@ export async function render(config: RenderConfig) {
   const ffmpegArgs = [
     '-y', '-framerate', String(fps),
     '-i', `${framesDir}/frame-%06d.png`,
+    ...(audioPath ? ['-i', audioPath] : []),
     ...codecArgList,
-    ...(audioPath ? ['-i', audioPath, '-c:a', 'aac', '-b:a', '192k', '-shortest'] : []),
+    ...(audioPath ? ['-c:a', 'aac', '-b:a', '192k', '-shortest'] : []),
     outputPath,
   ]
 
