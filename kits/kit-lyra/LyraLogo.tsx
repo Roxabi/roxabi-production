@@ -1,24 +1,24 @@
 /**
- * LyraLogo — frame-based SVG lyre mark
+ * LyraLogo — Forge diamond mark
  *
- * Paths extracted from the official lyra-logo-brief.json.
- * ViewBox: 0 0 400 400 (mark lives in ~x120–280, y60–340)
+ * Geometry extracted from lyra-logo-forge.html
+ * ViewBox: 0 0 240 260
+ * Diamond vertices: 120,14  182,82  156,142  120,158  84,142  58,82
+ * Hub center: cx=120, cy=95
  *
- * Colors: teal #00c8e0 (top/channels) → amber #f0a030 (hub/bottom)
+ * Colors: forge orange #e85d04, ember #f97316, spark #fafafa
  */
 import React from 'react'
 import { useCurrentFrame, useVideoConfig, spring, interpolate } from '../../core'
 import { cInterpolate } from '../../lib'
 
-const TEAL = '#00c8e0'
-const AMBER = '#f0a030'
-const HIGHLIGHT = '#eef4ff'
+const FORGE = '#e85d04'
+const EMBER = '#f97316'
+const SPARK = '#fafafa'
 
 export interface LyraLogoProps {
   size?: number
   delay?: number
-  /** Show surrounding hex frame */
-  showFrame?: boolean
   /** Override computed opacity */
   opacity?: number
 }
@@ -26,7 +26,6 @@ export interface LyraLogoProps {
 export const LyraLogo: React.FC<LyraLogoProps> = ({
   size = 120,
   delay = 0,
-  showFrame = false,
   opacity: opacityProp,
 }) => {
   const frame = useCurrentFrame()
@@ -35,34 +34,41 @@ export const LyraLogo: React.FC<LyraLogoProps> = ({
   // Overall entrance
   const entrance = spring({ frame, fps, delay, config: { damping: 14, stiffness: 80 } })
 
-  // Hub pulse (amber ring)
-  const hubPulse = 0.6 + Math.sin(frame * 0.09) * 0.4
+  // Crystal facets pop in (staggered)
+  const baseP = spring({ frame, fps, delay: delay + 2, config: { damping: 18, stiffness: 90 } })
+  const facetTopP = spring({ frame, fps, delay: delay + 4, config: { damping: 16, stiffness: 85 } })
+  const facetLUP = spring({ frame, fps, delay: delay + 8, config: { damping: 16, stiffness: 85 } })
+  const facetRUP = spring({ frame, fps, delay: delay + 11, config: { damping: 16, stiffness: 85 } })
+  const facetLLP = spring({ frame, fps, delay: delay + 14, config: { damping: 16, stiffness: 85 } })
+  const facetRLP = spring({ frame, fps, delay: delay + 17, config: { damping: 16, stiffness: 85 } })
 
-  // Arms & crossbar appear together after entrance
-  const armsP = spring({ frame, fps, delay: delay + 4, config: { damping: 18, stiffness: 70 } })
+  // Edges trace in
+  const edgesP = spring({ frame, fps, delay: delay + 6, config: { damping: 20, stiffness: 75 } })
 
-  // Strings stagger in
-  const stringDelays = [0, 4, 8, 12, 16] // relative to armsP complete
-  const stringsP = stringDelays.map((d) =>
-    spring({ frame, fps, delay: delay + 18 + d, config: { damping: 18, stiffness: 90 } })
-  )
+  // Hub-and-spoke flash (briefly visible then fades)
+  const spokeAppear = spring({ frame, fps, delay: delay + 22, config: { damping: 14, stiffness: 110 } })
+  const spokeFade = cInterpolate(frame, [delay + 38, delay + 52], [1, 0])
+  const spokeOpacity = spokeAppear * spokeFade
 
-  // Nodes pop in
-  const nodesP = spring({ frame, fps, delay: delay + 24, config: { damping: 10, stiffness: 120 } })
+  // Hub core appears and stays
+  const hubP = spring({ frame, fps, delay: delay + 24, config: { damping: 12, stiffness: 100 } })
 
-  // Hub appears last
-  const hubP = spring({ frame, fps, delay: delay + 28, config: { damping: 12, stiffness: 100 } })
+  // Hub idle pulse
+  const hubPulse = 0.75 + Math.sin(frame * 0.1) * 0.25
+
+  // Core glow grows
+  const coreGlowP = spring({ frame, fps, delay: delay + 20, config: { damping: 18, stiffness: 60 } })
 
   const opacity = opacityProp !== undefined ? opacityProp : entrance
-  const scale = interpolate(entrance, [0, 1], [0.85, 1])
+  const scale = interpolate(entrance, [0, 1], [0.75, 1])
 
-  const uid = `lyra-${size}-${delay}`
+  const uid = `forge-${size}-${delay}`
 
   return (
     <svg
       width={size}
       height={size}
-      viewBox="110 55 180 295"
+      viewBox="0 0 240 210"
       style={{
         opacity,
         transform: `scale(${scale})`,
@@ -71,27 +77,63 @@ export const LyraLogo: React.FC<LyraLogoProps> = ({
       }}
     >
       <defs>
-        {/* Arm gradient: teal at top → amber at hub */}
-        <linearGradient id={`armGrad-${uid}`} x1="200" y1="80" x2="200" y2="310" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor={TEAL} />
-          <stop offset="100%" stopColor={AMBER} />
+        {/* Main diamond fill */}
+        <linearGradient id={`diamFill-${uid}`} x1="0.5" y1="0" x2="0.5" y2="1">
+          <stop offset="0%" stopColor="#2a1808" />
+          <stop offset="40%" stopColor="#1a0f06" />
+          <stop offset="100%" stopColor="#0d0d14" />
         </linearGradient>
 
-        {/* String gradient */}
-        <linearGradient id={`strGrad-${uid}`} x1="200" y1="145" x2="200" y2="310" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor={TEAL} stopOpacity={0.8} />
-          <stop offset="100%" stopColor={AMBER} stopOpacity={0.7} />
+        {/* Top face highlight */}
+        <linearGradient id={`topFace-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={SPARK} stopOpacity={0.14} />
+          <stop offset="100%" stopColor={FORGE} stopOpacity={0.06} />
         </linearGradient>
 
-        {/* Hub glow */}
-        <radialGradient id={`hubGlow-${uid}`} cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor={AMBER} stopOpacity={0.4} />
-          <stop offset="100%" stopColor={AMBER} stopOpacity={0} />
+        {/* Left facet */}
+        <linearGradient id={`leftFace-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={FORGE} stopOpacity={0.18} />
+          <stop offset="100%" stopColor="#0a0a0f" stopOpacity={0} />
+        </linearGradient>
+
+        {/* Right facet */}
+        <linearGradient id={`rightFace-${uid}`} x1="1" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={EMBER} stopOpacity={0.1} />
+          <stop offset="100%" stopColor="#0a0a0f" stopOpacity={0} />
+        </linearGradient>
+
+        {/* Core inner glow */}
+        <radialGradient id={`coreGlow-${uid}`} cx="50%" cy="55%" r="50%">
+          <stop offset="0%" stopColor={EMBER} stopOpacity={0.75} />
+          <stop offset="40%" stopColor={FORGE} stopOpacity={0.35} />
+          <stop offset="100%" stopColor={FORGE} stopOpacity={0} />
         </radialGradient>
 
+        {/* Hub radial */}
+        <radialGradient id={`hubRadial-${uid}`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={SPARK} />
+          <stop offset="35%" stopColor={EMBER} />
+          <stop offset="100%" stopColor={FORGE} stopOpacity={0} />
+        </radialGradient>
+
+        {/* Spoke gradient */}
+        <linearGradient id={`spokeGrad-${uid}`} x1="0.5" y1="0" x2="0.5" y2="1">
+          <stop offset="0%" stopColor={FORGE} stopOpacity={0.7} />
+          <stop offset="100%" stopColor={SPARK} stopOpacity={0.3} />
+        </linearGradient>
+
         {/* Soft glow filter */}
-        <filter id={`glow-${uid}`} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="3" result="blur" />
+        <filter id={`glowSoft-${uid}`} x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="7" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        {/* Strong hub glow */}
+        <filter id={`glowHub-${uid}`} x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="5" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
@@ -99,142 +141,176 @@ export const LyraLogo: React.FC<LyraLogoProps> = ({
         </filter>
       </defs>
 
-      {/* ── Arms ─────────────────────────────────────────────────── */}
-      <path
-        d="M 200,310 C 180,280 130,220 125,155 C 120,110 140,80 165,80"
-        stroke={`url(#armGrad-${uid})`}
-        strokeWidth={2.5}
-        fill="none"
-        strokeLinecap="round"
-        opacity={armsP}
-        filter={`url(#glow-${uid})`}
-      />
-      <path
-        d="M 200,310 C 220,280 270,220 275,155 C 280,110 260,80 235,80"
-        stroke={`url(#armGrad-${uid})`}
-        strokeWidth={2.5}
-        fill="none"
-        strokeLinecap="round"
-        opacity={armsP}
-        filter={`url(#glow-${uid})`}
+      {/* ── Diamond base silhouette ─────────────────────────────── */}
+      <polygon
+        points="120,14 182,82 156,142 120,158 84,142 58,82"
+        fill={`url(#diamFill-${uid})`}
+        opacity={baseP}
       />
 
-      {/* ── Crossbar ─────────────────────────────────────────────── */}
-      <line
-        x1="165" y1="80" x2="235" y2="80"
-        stroke={TEAL}
-        strokeWidth={2}
-        strokeLinecap="round"
-        opacity={armsP}
+      {/* ── Facets ─────────────────────────────────────────────── */}
+      {/* Top face */}
+      <polygon
+        points="120,14 58,82 182,82"
+        fill={`url(#topFace-${uid})`}
+        stroke={SPARK}
+        strokeWidth={0.8}
+        strokeOpacity={0.35}
+        opacity={facetTopP}
+      />
+      {/* Left upper */}
+      <polygon
+        points="120,14 58,82 84,142 120,100"
+        fill={`url(#leftFace-${uid})`}
+        stroke={FORGE}
+        strokeWidth={0.7}
+        strokeOpacity={0.5}
+        opacity={facetLUP}
+      />
+      {/* Right upper */}
+      <polygon
+        points="120,14 182,82 156,142 120,100"
+        fill={`url(#rightFace-${uid})`}
+        stroke={EMBER}
+        strokeWidth={0.7}
+        strokeOpacity={0.4}
+        opacity={facetRUP}
+      />
+      {/* Left lower */}
+      <polygon
+        points="58,82 84,142 120,158 120,100"
+        fill="#1a0e06"
+        fillOpacity={0.7}
+        stroke={FORGE}
+        strokeWidth={0.7}
+        strokeOpacity={0.3}
+        opacity={facetLLP}
+      />
+      {/* Right lower */}
+      <polygon
+        points="182,82 156,142 120,158 120,100"
+        fill="#12100a"
+        fillOpacity={0.65}
+        stroke={EMBER}
+        strokeWidth={0.7}
+        strokeOpacity={0.25}
+        opacity={facetRLP}
       />
 
-      {/* ── Yoke (mid horizontal bar) ─────────────────────────────── */}
-      <line
-        x1="139" y1="145" x2="261" y2="145"
-        stroke={TEAL}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        opacity={armsP * 0.5}
+      {/* ── Core inner glow (ellipse) ─────────────────────────── */}
+      <ellipse
+        cx="120"
+        cy="95"
+        rx={interpolate(coreGlowP, [0, 1], [0, 52])}
+        ry={interpolate(coreGlowP, [0, 1], [0, 50])}
+        fill={`url(#coreGlow-${uid})`}
+        opacity={coreGlowP}
       />
 
-      {/* ── Strings (from yoke → hub, staggered) ──────────────────── */}
-      {/* String left */}
-      <line
-        x1="172" y1="145" x2="192" y2="300"
-        stroke={`url(#strGrad-${uid})`}
-        strokeWidth={1.2}
-        strokeLinecap="round"
-        opacity={stringsP[0] * 0.7}
+      {/* ── Outer edges (traced) ──────────────────────────────── */}
+      {/* Top-left */}
+      <line x1="120" y1="14" x2="58" y2="82"
+        stroke={FORGE} strokeWidth={1.5} strokeLinecap="round"
+        strokeDasharray="80"
+        strokeDashoffset={interpolate(edgesP, [0, 1], [80, 0])}
+        opacity={edgesP * 0.9}
       />
-      {/* String center-left */}
-      <line
-        x1="186" y1="145" x2="196" y2="300"
-        stroke={`url(#strGrad-${uid})`}
-        strokeWidth={1.2}
-        strokeLinecap="round"
-        opacity={stringsP[1] * 0.7}
+      {/* Top-right */}
+      <line x1="120" y1="14" x2="182" y2="82"
+        stroke={EMBER} strokeWidth={1.5} strokeLinecap="round"
+        strokeDasharray="80"
+        strokeDashoffset={interpolate(edgesP, [0, 1], [80, 0])}
+        opacity={edgesP * 0.85}
       />
-      {/* String center */}
-      <line
-        x1="200" y1="145" x2="200" y2="300"
-        stroke={`url(#strGrad-${uid})`}
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        opacity={stringsP[2] * 0.9}
+      {/* Belt left */}
+      <line x1="58" y1="82" x2="84" y2="142"
+        stroke={FORGE} strokeWidth={1.2} strokeLinecap="round"
+        strokeDasharray="65"
+        strokeDashoffset={interpolate(edgesP, [0, 1], [65, 0])}
+        opacity={edgesP * 0.7}
       />
-      {/* String center-right */}
-      <line
-        x1="214" y1="145" x2="204" y2="300"
-        stroke={`url(#strGrad-${uid})`}
-        strokeWidth={1.2}
-        strokeLinecap="round"
-        opacity={stringsP[3] * 0.7}
+      {/* Belt right */}
+      <line x1="182" y1="82" x2="156" y2="142"
+        stroke={EMBER} strokeWidth={1.2} strokeLinecap="round"
+        strokeDasharray="65"
+        strokeDashoffset={interpolate(edgesP, [0, 1], [65, 0])}
+        opacity={edgesP * 0.65}
       />
-      {/* String right */}
-      <line
-        x1="228" y1="145" x2="208" y2="300"
-        stroke={`url(#strGrad-${uid})`}
-        strokeWidth={1.2}
-        strokeLinecap="round"
-        opacity={stringsP[4] * 0.7}
-      />
-
-      {/* ── Nodes ─────────────────────────────────────────────────── */}
-      {/* Horn left */}
-      <circle cx="165" cy="80" r={interpolate(nodesP, [0, 1], [0, 4])} fill={TEAL} />
-      {/* Horn right */}
-      <circle cx="235" cy="80" r={interpolate(nodesP, [0, 1], [0, 4])} fill={TEAL} />
-      {/* Yoke left */}
-      <circle cx="130" cy="145" r={interpolate(nodesP, [0, 1], [0, 3.5])} fill={`url(#strGrad-${uid})`} />
-      {/* Yoke right */}
-      <circle cx="270" cy="145" r={interpolate(nodesP, [0, 1], [0, 3.5])} fill={`url(#strGrad-${uid})`} />
       {/* Lower left */}
-      <circle cx="148" cy="215" r={interpolate(nodesP, [0, 1], [0, 3])} fill={AMBER} opacity={0.85} />
+      <line x1="84" y1="142" x2="120" y2="158"
+        stroke={FORGE} strokeWidth={1.2} strokeLinecap="round"
+        strokeDasharray="42"
+        strokeDashoffset={interpolate(edgesP, [0, 1], [42, 0])}
+        opacity={edgesP * 0.6}
+      />
       {/* Lower right */}
-      <circle cx="252" cy="215" r={interpolate(nodesP, [0, 1], [0, 3])} fill={AMBER} opacity={0.85} />
+      <line x1="156" y1="142" x2="120" y2="158"
+        stroke={EMBER} strokeWidth={1.2} strokeLinecap="round"
+        strokeDasharray="42"
+        strokeDashoffset={interpolate(edgesP, [0, 1], [42, 0])}
+        opacity={edgesP * 0.55}
+      />
+      {/* Horizontal belt */}
+      <line x1="58" y1="82" x2="182" y2="82"
+        stroke={SPARK} strokeWidth={0.7} strokeLinecap="round"
+        strokeOpacity={0.2}
+        strokeDasharray="124"
+        strokeDashoffset={interpolate(edgesP, [0, 1], [124, 0])}
+        opacity={edgesP}
+      />
+      {/* Vertical center axis */}
+      <line x1="120" y1="14" x2="120" y2="158"
+        stroke={FORGE} strokeWidth={0.6} strokeLinecap="round"
+        strokeOpacity={0.25}
+        strokeDasharray="144"
+        strokeDashoffset={interpolate(edgesP, [0, 1], [144, 0])}
+        opacity={edgesP}
+      />
 
-      {/* ── Hub ───────────────────────────────────────────────────── */}
-      {/* Glow disc */}
-      <circle
-        cx="200" cy="310"
-        r={interpolate(hubP, [0, 1], [0, 28 * hubPulse])}
-        fill={`url(#hubGlow-${uid})`}
-      />
-      {/* Main disc */}
-      <circle
-        cx="200" cy="310"
-        r={interpolate(hubP, [0, 1], [0, 7])}
-        fill={AMBER}
-        filter={`url(#glow-${uid})`}
-      />
-      {/* Center highlight */}
-      <circle
-        cx="200" cy="310"
-        r={interpolate(hubP, [0, 1], [0, 2.5])}
-        fill={HIGHLIGHT}
-      />
+      {/* ── Hub-and-spoke flash ────────────────────────────────── */}
+      <g opacity={spokeOpacity}>
+        {/* Spokes from hub (120,95) */}
+        <line x1="120" y1="95" x2="120" y2="28" stroke={`url(#spokeGrad-${uid})`} strokeWidth={0.8} strokeLinecap="round" />
+        <line x1="120" y1="95" x2="73" y2="82" stroke={`url(#spokeGrad-${uid})`} strokeWidth={0.8} strokeLinecap="round" />
+        <line x1="120" y1="95" x2="167" y2="82" stroke={`url(#spokeGrad-${uid})`} strokeWidth={0.8} strokeLinecap="round" />
+        <line x1="120" y1="95" x2="88" y2="140" stroke={`url(#spokeGrad-${uid})`} strokeWidth={0.8} strokeLinecap="round" />
+        <line x1="120" y1="95" x2="152" y2="140" stroke={`url(#spokeGrad-${uid})`} strokeWidth={0.8} strokeLinecap="round" />
+        <line x1="120" y1="95" x2="120" y2="155" stroke={`url(#spokeGrad-${uid})`} strokeWidth={0.8} strokeLinecap="round" />
+        {/* Spoke node dots */}
+        <circle cx="120" cy="57" r="2.2" fill={FORGE} opacity={0.8} />
+        <circle cx="96" cy="89" r="1.8" fill={SPARK} opacity={0.7} />
+        <circle cx="144" cy="89" r="1.8" fill={SPARK} opacity={0.7} />
+        <circle cx="104" cy="117" r="1.8" fill={FORGE} opacity={0.6} />
+        <circle cx="136" cy="117" r="1.8" fill={FORGE} opacity={0.6} />
+        <circle cx="120" cy="128" r="2.0" fill={EMBER} opacity={0.7} />
+      </g>
 
-      {/* ── Shockwave rings (one-time on hub reveal) ─────────────── */}
-      {hubP > 0.5 && (
-        <>
-          <circle
-            cx="200" cy="310"
-            r={interpolate(hubP, [0.5, 1], [7, 45])}
-            fill="none"
-            stroke={AMBER}
-            strokeWidth={1.2}
-            opacity={interpolate(hubP, [0.5, 1], [0.6, 0])}
-          />
-          <circle
-            cx="200" cy="310"
-            r={interpolate(hubP, [0.6, 1], [7, 63])}
-            fill="none"
-            stroke={TEAL}
-            strokeWidth={0.8}
-            opacity={interpolate(hubP, [0.6, 1], [0.4, 0])}
-          />
-        </>
+      {/* ── Hub glow ring (shockwave on reveal) ───────────────── */}
+      {hubP > 0.3 && (
+        <circle
+          cx="120" cy="95"
+          r={interpolate(hubP, [0.3, 1], [6, 45])}
+          fill="none"
+          stroke={FORGE}
+          strokeWidth={1.5}
+          opacity={interpolate(hubP, [0.3, 1], [0.6, 0])}
+        />
       )}
+
+      {/* ── Hub core (permanent) ──────────────────────────────── */}
+      <circle
+        cx="120" cy="95"
+        r={interpolate(hubP, [0, 1], [0, 5.5 * hubPulse])}
+        fill={`url(#hubRadial-${uid})`}
+        filter={`url(#glowHub-${uid})`}
+        opacity={hubP}
+      />
+      <circle
+        cx="120" cy="95"
+        r={interpolate(hubP, [0, 1], [0, 2.2])}
+        fill={SPARK}
+        opacity={hubP}
+      />
     </svg>
   )
 }
