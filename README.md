@@ -1,76 +1,106 @@
-# roxabi-production
+# roxabi-video-engine
 
-**Production assets for the Roxabi ecosystem — videos, media, and compiled outputs.**
+**Custom React video engine for the Roxabi ecosystem — build animated videos with composable kits.**
 
 [![GitHub](https://img.shields.io/badge/github-Roxabi%2Froxabi--production-blue?logo=github)](https://github.com/Roxabi/roxabi-production)
 
-Production-ready assets that ship alongside the Roxabi projects. Currently hosts the **Lyra birth video** — a narrated product video documenting Lyra's 52-day origin story, built with Remotion.
+A lightweight, Remotion-inspired video engine built from scratch with React + Vite + TypeScript. No Remotion dependency — frames are rendered via Puppeteer and encoded by FFmpeg. Ships with 14 component kits (~60 components) and a CLI renderer.
 
 ## Why
 
-Keeping production assets separate from source repositories avoids bloating the main project repos with large binaries (MP4s, audio files) while still version-controlling the asset pipeline that generates them.
+Building a custom engine gives full control over the render pipeline, composition API, and component design — without being tied to Remotion's runtime or pricing. The kit system makes it easy to compose new videos by assembling reusable scene primitives.
 
-This repo is the single source of truth for all rendered media and compiled outputs from the Roxabi ecosystem.
+## Architecture
 
-## Contents
+```
+core/          → Animation primitives (interpolate, spring, useCurrentFrame, Sequence…)
+lib/           → Utilities (cInterpolate, sprng helpers)
+kits/          → 14 component kits (text, backgrounds, cinema, motion, UI, dataviz…)
+renderer/      → Puppeteer + FFmpeg render pipeline (CLI)
+showcase/      → Production compositions (LyraLaunchTrailer, ShowcaseVideo)
+player/        → Browser preview (Vite dev server)
+out/           → Rendered MP4 outputs
+```
 
-| Asset | Description |
-|-------|-------------|
-| `lyra-product-video/` | Remotion project — Lyra birth story video |
-| `lyra-product-video/lyra-birth.mp4` | Final render (French narration, ~5 min) |
-| `lyra-product-video/narration.mp3/wav` | Narration audio (Qwen/VoiceCLI generated) |
+```mermaid
+flowchart LR
+  A[React compositions<br>showcase/] --> B[Vite dev server<br>localhost:3001]
+  B --> C[Puppeteer<br>frame capture]
+  C --> D[FFmpeg<br>encode]
+  D --> E[out/*.mp4]
+```
 
-### lyra-product-video
+## Kits
 
-A 17-scene animated video narrated by Lyra in French, recounting how the Roxabi ecosystem was built over 52 days — from a wrong bet on MCP to a 6-repo ecosystem.
-
-| Scene | Title |
-|-------|-------|
-| 1 | Title |
-| 2 | The Wrong Bet (MCP pivot) |
-| 3 | Kill Your Darlings (LinkedIn skill removed) |
-| 4 | Foundation (shared modules) |
-| 5 | Radar (competitive intelligence) |
-| 6 | Telegram (mobile-first) |
-| 7 | Patch Notes (discipline) |
-| 8 | Industrial (spec-first) |
-| 9 | Lesson |
-| 10 | The Day (3 systems born in parallel) |
-| 11 | Voice (VoiceCLI) |
-| 12 | The Night (first real conversation) |
-| 13 | Identity (Lyra's name) |
-| 14 | Ecosystem |
-| 15 | Numbers (462 commits, 389 intel entries, 11 plugins) |
-| 16 | Four Days (Lyra built in 4 days from 52 days of learning) |
-| 17 | Closing |
+| Kit | Components |
+|-----|-----------|
+| `kit-text` | `Typewriter`, `GlitchText`, `StaggeredWords`, `StaggerLines`, `FadeText`, `CountUp`, `WordByWord` |
+| `kit-backgrounds` | `GradientBackground`, `ParticleField`, `GridPattern`, `BokehBackground`, `Glow` |
+| `kit-cinema` | `FilmGrain`, `Vignette`, `LightSweep`, `FloatingOrbs`, `ChromaticAberration`, `GlitchOverlay`, `KenBurns`, `TunnelEffect`, `FogLayer`, `ImageFrame` |
+| `kit-motion` | `FadeIn`, `SlideIn`, `ScalePop`, `PulseGlow`, `CameraShake`, `FlickerReveal`, `NumberReveal` |
+| `kit-overlays` | `ImpactText`, `FloatingCards`, `IconBadge`, `SyncedCaptions` |
+| `kit-ui` | `NotificationToast`, `ChatInterface`, `BrowserTabs`, `PhoneFrame`, `LaptopFrame`, `EmailInbox`, `FlowDiagram`, `GitHubCard`, `Timer`, `BrandBadge` |
+| `kit-layout` | `SlideBase`, `Title`, `Body`, `Quote`, `Chrome`, `TextCard`, `TerminalBox`, `AccentBadge` |
+| `kit-dataviz` | `AnimatedBar`, `AnimatedLine`, `AnimatedCounter`, `ProgressBar`, `ProgressRing`, `NeuralNetworkGraph` |
+| `kit-transitions` | `SceneTransition` |
+| `kit-social` | `SocialCard`, `LowerThird`, `CaptionOverlay` |
+| `kit-shapes` | `AnimatedShape`, `PixelArtScene` |
+| `kit-audio` | `WaveformBars` |
+| `kit-3d` | `FloatingObject` |
+| `kit-lyra` | `LyraLogo`, `ForgeTerminal`, `ForgeArchDiagram` |
 
 ## Quick Start
 
 ```bash
-# Preview the video in Remotion Studio
-cd lyra-product-video/lyra-video
 npm install
+
+# Preview in browser (hot reload)
 npm run dev
+# → http://localhost:3001?composition=LyraLaunchTrailer
 
-# Render final MP4
-npm run render
-# → lyra-product-video/lyra-birth.mp4
+# Render to MP4
+npm run render LyraLaunchTrailer
+# → out/LyraLaunchTrailer.mp4
+
+# Render with narration audio
+npm run render LyraLaunchTrailer out/lyra-trailer.mp4 --audio=path/to/narration.mp3
+
+# Type check
+npm run typecheck
 ```
 
-## How it works
+## Renderer
 
-```mermaid
-flowchart LR
-  A[narration.md<br>VoiceCLI TTS] --> B[narration.mp3]
-  B --> C[Remotion Studio<br>React + TypeScript]
-  C --> D[lyra-birth.mp4]
+The render pipeline requires:
+- A running Vite dev server on `localhost:3001`
+- `puppeteer` (installed as devDependency)
+- `ffmpeg` available in `$PATH`
+
+The renderer navigates to `/?composition=<id>&mode=render`, reads `__ROXVID_DURATION__` from the window, captures frames one by one, then encodes with FFmpeg (h264 by default, CRF 18).
+
+```bash
+# CLI usage
+npx tsx renderer/cli.ts <CompositionId> [output.mp4] [--audio=path]
 ```
 
-Narration is generated by [VoiceCLI](https://github.com/Roxabi/voiceCLI) using the `qwen-fast` engine. The video is composed in [Remotion](https://www.remotion.dev/) with 17 React scene components.
+## Showcase
 
-## Contributing
+| Composition | Description |
+|-------------|-------------|
+| `LyraLaunchTrailer` | Lyra launch trailer — Forge palette, cinematic FX |
+| `ShowcaseVideo` | General showcase reel |
 
-This is a private production asset repo. See the [Roxabi organization](https://github.com/Roxabi) for open-source projects.
+## Legacy
+
+`lyra-product-video/` contains the original Remotion-based birth story video (17 scenes, French narration, ~5 min). It is standalone and not part of the new engine.
+
+## Stack
+
+- React 19 + TypeScript 5.7
+- Vite 6 (dev server + build)
+- Puppeteer 24 (headless frame capture)
+- FFmpeg (video encoding)
+- Vitest 3 (unit tests)
 
 ## License
 
