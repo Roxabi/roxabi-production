@@ -23,6 +23,7 @@ import { ScalePop } from '../kits/kit-motion/ScalePop'
 import { NotificationToast } from '../kits/kit-ui/NotificationToast'
 import { ForgeTerminal } from '../kits/kit-lyra/ForgeTerminal'
 import { ForgeArchDiagram } from '../kits/kit-lyra/ForgeArchDiagram'
+import { LyraLogo } from '../kits/kit-lyra/LyraLogo'
 
 // ─── Forge palette ─────────────────────────────────────────────────────────────
 const BG = '#0a0a0f'
@@ -90,7 +91,7 @@ const S01Hook: React.FC = () => {
             fontSize: 38,
             textAlign: 'center',
             letterSpacing: '0.03em',
-            fontFamily: 'Outfit, system-ui',
+            fontFamily: 'Space Grotesk, system-ui',
             fontWeight: 700,
           }}
         />
@@ -129,6 +130,18 @@ const S01Hook: React.FC = () => {
         }}
       >
         ▋
+      </div>
+
+      {/* Logo watermark — top left */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 48,
+          left: 56,
+          opacity: cInterpolate(frame, [0, 25], [0, 0.45]),
+        }}
+      >
+        <LyraLogo size={48} delay={5} />
       </div>
 
       <FilmGrain opacity={0.06} />
@@ -206,7 +219,7 @@ const S02Problem: React.FC = () => {
             <div style={{ fontSize: 42, marginBottom: 10 }}>{card.icon}</div>
             <div
               style={{
-                fontFamily: 'Outfit, system-ui',
+                fontFamily: 'Space Grotesk, system-ui',
                 fontWeight: 700,
                 fontSize: 22,
                 color: WHITE,
@@ -261,7 +274,7 @@ const S02Problem: React.FC = () => {
             key={line.text}
             style={{
               opacity: cInterpolate(frame, [line.start, line.start + 22], [0, 1]),
-              fontFamily: 'Outfit, system-ui',
+              fontFamily: 'Space Grotesk, system-ui',
               fontSize: 28,
               color: GRAY2,
               fontWeight: 400,
@@ -332,17 +345,55 @@ const S03Reveal: React.FC = () => {
         </div>
       </AbsoluteFill>
 
-      {/* Lyra wordmark — slams in */}
-      <ImpactText
-        text="LYRA"
-        subtext="PERSONAL INTELLIGENCE ENGINE"
-        color={ORANGE}
-        delay={160}
-        fontSize={156}
-      />
+      {/* Lyra logo + Questrial wordmark — entrance at f160 */}
+      <AbsoluteFill
+        style={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          gap: 16,
+          pointerEvents: 'none',
+        }}
+      >
+        <LyraLogo size={140} delay={160} />
+
+        {/* LYRA in Questrial with brand gradient */}
+        <div
+          style={{
+            opacity: cInterpolate(frame, [185, 215], [0, 1]),
+            transform: `translateY(${cInterpolate(frame, [185, 215], [18, 0])}px)`,
+            fontFamily: 'Questrial, Century Gothic, sans-serif',
+            fontWeight: 300,
+            fontSize: 100,
+            letterSpacing: '0.30em',
+            paddingLeft: '0.30em', // optical balance for tracking
+            background: 'linear-gradient(135deg, #b0c4de 0%, #eef4ff 30%, #00c8e0 60%, #f0a030 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            lineHeight: 1,
+          }}
+        >
+          LYRA
+        </div>
+
+        {/* Category label */}
+        <div
+          style={{
+            opacity: cInterpolate(frame, [215, 245], [0, 1]),
+            fontFamily: 'JetBrains Mono, monospace',
+            fontSize: 13,
+            color: GRAY2,
+            letterSpacing: '0.34em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Personal Intelligence Engine
+        </div>
+      </AbsoluteFill>
 
       {/* Light sweep on crystallize */}
-      <LightSweep delay={158} color={ORANGE} width={18} />
+      <LightSweep delay={158} color="#00c8e0" width={18} />
 
       <FilmGrain opacity={0.05} />
       <Vignette intensity={0.62} />
@@ -615,10 +666,10 @@ const S06Tagline: React.FC = () => {
           delayPerWord={8}
           startAt={10}
           style={{
-            fontSize: 70,
-            fontFamily: 'Outfit, system-ui',
-            fontWeight: 800,
-            letterSpacing: '-0.01em',
+            fontSize: 68,
+            fontFamily: 'Space Grotesk, system-ui',
+            fontWeight: 700,
+            letterSpacing: '0.02em',
             color: WHITE,
             textAlign: 'center',
           }}
@@ -652,12 +703,24 @@ const S06Tagline: React.FC = () => {
         </div>
       </AbsoluteFill>
 
+      {/* Logo watermark — bottom right */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 52,
+          right: 56,
+          opacity: cInterpolate(frame, [50, 80], [0, 0.55]),
+        }}
+      >
+        <LyraLogo size={42} delay={50} />
+      </div>
+
       {/* Corner cursor */}
       <div
         style={{
           position: 'absolute',
           bottom: 70,
-          right: 96,
+          right: 120,
           opacity: Math.floor(frame / 12) % 2 === 0 ? 0.5 : 0,
           fontFamily: 'JetBrains Mono, monospace',
           fontSize: 18,
