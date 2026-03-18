@@ -3,9 +3,18 @@ import { createRoot } from 'react-dom/client'
 import { Studio } from '../player/Studio'
 import { FrameProvider } from '../core'
 import type { CompositionConfig, VideoConfig } from '../core'
+import { ShowcaseVideo } from '../showcase/ShowcaseVideo'
 
-// Placeholder compositions — will be populated as kits are migrated
-const compositions: CompositionConfig[] = []
+const compositions: CompositionConfig[] = [
+  {
+    id: 'showcase',
+    component: ShowcaseVideo,
+    durationInFrames: 1680, // 56s @ 30fps
+    fps: 30,
+    width: 1920,
+    height: 1080,
+  },
+]
 
 const params = new URLSearchParams(window.location.search)
 const mode = params.get('mode')
