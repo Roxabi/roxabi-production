@@ -162,37 +162,18 @@ This wraps the existing `web-intel/scripts/video_analyzer.py` pipeline and the a
    - Run `bun run typecheck`
    - Update COMPONENT_INVENTORY.md to move from "Needs to be Built" to "Already Built"
 
-## Existing corpus
+## Output directory
 
-The original retro engineering session analyzed **12 videos (1946 frames)**. Results live in:
+All analysis results are stored in `artifacts/video-analyses/`:
 
 ```
 artifacts/video-analyses/
-├── AGGREGATION.md          # 53 KB — global report
-├── AGGREGATION.json        # 282 KB — machine-readable
-├── COMPONENT_INVENTORY.md  # 23 KB — build roadmap
-├── run_batch.sh            # batch pipeline script
-├── batch.log               # execution log
-├── 0soFIReWb1w.json        # How to Make OpenClaw 10x More Powerful
-├── 5O1uFIdUgVA.json        # Vous n'avez pas vraiment vu Ready Player One
-├── 7TuovV_f5d8.json        # Le langage de Dieu (320 frames — largest)
-├── 8r_hAwaUTa4.json        # Le monstre qui connaît déjà votre avenir
-├── GnmzcahoJ18.json        # 1089 pixels pour comprendre que vous n'existez pas
-├── LV9CjEqqKHQ.json        # Le complexe de dieu
-├── LqN_ItMqovA.json        # I Didn't Know This Was Possible Until Now
-├── Nd2pavAegx4.json        # 285 milliards partis en fumée: comment Anthropic
-├── q4j6y-Yjp90.json        # -4800$/client: L'ardoise salée des SaaS IA
-├── UhRGHr7pgnU.json        # How I ACTUALLY Use Opencode As A Senior Engineer
-├── uEit1oOJK0w.json        # GSD Is the Missing Piece For Claude Code
-└── YPEvrpzz72w.json        # Apple capitule! Le piège qui va tuer OpenAI
+├── <VIDEO_ID>.json         # Per-video frame descriptions (one per analyzed video)
+├── AGGREGATION.md          # Human-readable global report
+├── AGGREGATION.json        # Machine-readable aggregation
+├── COMPONENT_INVENTORY.md  # Prioritized component build roadmap
+├── run_batch.sh            # Batch pipeline script (for multi-video runs)
+└── batch.log               # Execution log
 ```
 
-When running `--aggregate`, include all existing JSON files — new analyses add to the corpus incrementally.
-
-## Key stats from current corpus
-
-| Metric | Top 3 |
-|--------|-------|
-| Scene types | 2d_graphics (2815), animation (1681), 3d_scene (1593) |
-| Effects | glow (4385), blur (4361), chromatic_aberration (2083) |
-| Colors | black (7640), white (7444), dark (6576) |
+New analyses add to the corpus incrementally — `--aggregate` re-processes all `*.json` files in the directory.
