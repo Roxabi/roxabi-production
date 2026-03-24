@@ -1,0 +1,8 @@
+{
+  "name": "video-engine",
+  "version": "1.0.0",
+  "description": "Create and render animated video compositions using Roxabi's custom React → Puppeteer → FFmpeg pipeline. 65 components across 12 kits.",
+  "author": {
+    "name": "Roxabi"
+  }
+}
