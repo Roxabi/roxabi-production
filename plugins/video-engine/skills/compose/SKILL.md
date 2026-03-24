@@ -36,6 +36,14 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 5. **Typecheck** — run `bun run typecheck` and fix any errors before finishing.
 
+6. **Generate VO draft** — after the composition is scaffolded, create a matching voice-over script at `compositions/<name>/vo.md`:
+   - Extract text content from each scene (titles, body, captions)
+   - Map scene timing to narration segments
+   - Add VoiceCLI frontmatter (voice, engine, emotion, segment_gap)
+   - Use `<!-- directives -->` for per-scene emotion shifts
+   - Target ~2.5 words/second for natural pacing
+   - Tell the user: "VO draft saved — run `/voice-over` to refine and render it."
+
 ## Kit quick-reference
 
 Backgrounds: `GradientBackground`, `ParticleField`, `GridPattern`, `BokehBackground`, `Glow`
