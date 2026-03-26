@@ -20,7 +20,8 @@
       "@lib": ["./lib/index.ts"],
       "@lib/*": ["./lib/*"]
     },
-    "baseUrl": "."
+    "baseUrl": ".",
+    "types": ["node"]
   },
   "include": ["core", "kits", "themes", "lib", "player", "renderer", "showcase", "dev", "tests"],
   "exclude": ["node_modules", "dist", "out"]

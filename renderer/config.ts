@@ -1,3 +1,16 @@
+export interface SfxCue {
+  file: string
+  at: number       // seconds from start
+  volume?: number  // 0–1, default 0.8
+}
+
+export interface BgmTrack {
+  file: string
+  volume?: number   // 0–1, default 0.2
+  fadeIn?: number   // seconds, default 2
+  fadeOut?: number  // seconds, default 2
+}
+
 export interface RenderConfig {
   compositionId: string
   outputPath: string
@@ -6,7 +19,9 @@ export interface RenderConfig {
   fps?: number
   codec?: 'h264' | 'prores' | 'vp9'
   crf?: number
-  audioPath?: string
+  audioPath?: string  // single VO track (backward-compatible)
+  bgm?: BgmTrack      // background music
+  sfx?: SfxCue[]      // timecoded sound effects
   concurrency?: number
 }
 

@@ -2,7 +2,78 @@ import puppeteer from 'puppeteer'
 import { spawnSync } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
-import { codecArgs, validateCompositionId, MAX_DURATION_FRAMES, type RenderConfig } from './config'
+import { codecArgs, validateCompositionId, MAX_DURATION_FRAMES, type RenderConfig, type BgmTrack, type SfxCue } from './config'
+
+// ---------------------------------------------------------------------------
+// Audio helpers
+// ---------------------------------------------------------------------------
+
+interface AudioArgs {
+  before: string[]  // extra -i inputs + optional -filter_complex
+  after: string[]   // -map flags + audio codec flags (empty when no audio)
+}
+
+function buildAudioArgs(
+  audioPath: string | undefined,
+  bgm: BgmTrack | undefined,
+  sfx: SfxCue[] | undefined,
+  durationSeconds: number,
+): AudioArgs {
+  const hasAudio = audioPath || bgm || sfx?.length
+  if (!hasAudio) return { before: [], after: [] }
+
+  // Simple path: single VO, no mixing
+  if (audioPath && !bgm && !sfx?.length) {
+    return {
+      before: ['-i', audioPath],
+      after: ['-c:a', 'aac', '-b:a', '192k', '-shortest'],
+    }
+  }
+
+  // Multi-track path: build filter_complex
+  const inputs: string[] = []
+  const filterLines: string[] = []
+  const mixLabels: string[] = []
+  let idx = 1  // [0] is always the frames input
+
+  if (audioPath) {
+    inputs.push('-i', audioPath)
+    filterLines.push(`[${idx}]volume=1.0[vo]`)
+    mixLabels.push('[vo]')
+    idx++
+  }
+
+  if (bgm) {
+    const vol = bgm.volume ?? 0.2
+    const fadeIn = bgm.fadeIn ?? 2
+    const fadeOut = bgm.fadeOut ?? 2
+    const fadeOutStart = Math.max(0, durationSeconds - fadeOut)
+    inputs.push('-i', bgm.file)
+    filterLines.push(
+      `[${idx}]volume=${vol},afade=t=in:st=0:d=${fadeIn},afade=t=out:st=${fadeOutStart.toFixed(2)}:d=${fadeOut}[bgm]`,
+    )
+    mixLabels.push('[bgm]')
+    idx++
+  }
+
+  sfx?.forEach((cue, i) => {
+    const vol = cue.volume ?? 0.8
+    const delayMs = Math.round(cue.at * 1000)
+    inputs.push('-i', cue.file)
+    filterLines.push(`[${idx}]adelay=${delayMs},volume=${vol}[s${i}]`)
+    mixLabels.push(`[s${i}]`)
+    idx++
+  })
+
+  filterLines.push(
+    `${mixLabels.join('')}amix=inputs=${mixLabels.length}:normalize=0:duration=first[aout]`,
+  )
+
+  return {
+    before: [...inputs, '-filter_complex', filterLines.join(';\n')],
+    after: ['-map', '0:v', '-map', '[aout]', '-c:a', 'aac', '-b:a', '192k', '-shortest'],
+  }
+}
 
 export async function render(config: RenderConfig) {
   const {
@@ -14,6 +85,8 @@ export async function render(config: RenderConfig) {
     codec = 'h264',
     crf = 18,
     audioPath,
+    bgm,
+    sfx,
   } = config
 
   const compositionId = validateCompositionId(rawId)
@@ -69,13 +142,22 @@ export async function render(config: RenderConfig) {
   console.log('\n  Frames captured. Encoding...')
   await browser.close()
 
+  const durationSeconds = durationInFrames / fps
+  const { before: audioBefore, after: audioAfter } = buildAudioArgs(audioPath, bgm, sfx, durationSeconds)
+
+  if (bgm || sfx?.length) {
+    const tracks = [audioPath && 'VO', bgm && 'BGM', sfx?.length && `${sfx.length} SFX`].filter(Boolean)
+    console.log(`  Audio: ${tracks.join(' + ')}`)
+    sfx?.forEach(c => console.log(`    sfx  t=${c.at}s  ${path.basename(c.file)}  vol=${c.volume ?? 0.8}`))
+  }
+
   const codecArgList = codecArgs[codec]?.(crf) ?? codecArgs.h264(crf)
   const ffmpegArgs = [
     '-y', '-framerate', String(fps),
     '-i', `${framesDir}/frame-%06d.png`,
-    ...(audioPath ? ['-i', audioPath] : []),
+    ...audioBefore,
     ...codecArgList,
-    ...(audioPath ? ['-c:a', 'aac', '-b:a', '192k', '-shortest'] : []),
+    ...audioAfter,
     outputPath,
   ]
 
