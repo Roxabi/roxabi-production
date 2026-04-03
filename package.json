@@ -20,7 +20,7 @@
     "@types/node": "^25.5.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.0.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "jsdom": "^26.0.0",
     "puppeteer": "^24.0.0",
     "simple-icons": "^16.12.0",
