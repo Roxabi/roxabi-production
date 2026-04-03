@@ -7,22 +7,19 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 # Compose
 
-**Goal:** Scaffold a new named composition with scenes, kit components, and register it in `dev/main.tsx`.
+**Goal:** Scaffold a new named composition with scenes, kit components, registered in `dev/main.tsx`.
+
+Let: P = `compositions/<name>`, N = `<Name>`
 
 ## Steps
 
-1. **Gather intent** — ask the user: What is the composition about? How long (seconds)? Which kits/components to feature? 1920×1080 or custom dimensions?
+1. **Gather intent** — ask: subject, duration (seconds), kits/components to feature, dimensions (1920×1080 or custom).
 
-2. **Plan scenes** — propose a scene structure (opening, content scenes, closing) with timing.
+2. **Plan scenes** — propose opening, content, closing structure with timing.
 
-3. **Scaffold the file** — create `compositions/<name>/<Name>.tsx` with:
-   - Correct imports from `../core` and `../kits/`
-   - `AbsoluteFill` + `Sequence` structure
-   - A scene per major beat, each wrapped in `SceneTransition`
-   - `KitLabel` helper at the bottom-right of each scene
-   - `Chrome` watermark on opening and closing scenes
+3. **Scaffold `P/N.tsx`** — correct imports from `../core` and `../kits/` | `AbsoluteFill` + `Sequence` structure | ∀ major beat: scene wrapped in `SceneTransition` | `KitLabel` bottom-right ∀ scene | `Chrome` watermark on opening + closing.
 
-4. **Register in `dev/main.tsx`** — add entry to `compositions` array:
+4. **Register in `dev/main.tsx`:**
    ```ts
    {
      id: '<name>',
@@ -34,22 +31,18 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
    }
    ```
 
-5. **Typecheck** — run `bun run typecheck` and fix any errors before finishing.
+5. **Typecheck** — `bun run typecheck`, fix errors before finishing.
 
-6. **Generate VO draft** — after the composition is scaffolded, create a matching voice-over script at `compositions/<name>/vo.md`:
-   - Extract text content from each scene (titles, body, captions)
-   - Map scene timing to narration segments
-   - Add VoiceCLI frontmatter (voice, engine, emotion, segment_gap)
-   - Use `<!-- directives -->` for per-scene emotion shifts
-   - Target ~2.5 words/second for natural pacing
-   - Tell the user: "VO draft saved — run `/voice-over` to refine and render it."
+6. **Generate VO draft** — create `P/vo.md`: extract text ∀ scene (titles/body/captions), map timing → narration segments, add VoiceCLI frontmatter (voice/engine/emotion/segment_gap), `<!-- directives -->` for per-scene shifts, target ~2.5w/s. Tell user: "VO draft saved — run `/voice-over` to refine and render."
 
 ## Kit quick-reference
 
-Backgrounds: `GradientBackground`, `ParticleField`, `GridPattern`, `BokehBackground`, `Glow`
-Cinema: `ChromaticAberration`, `FilmGrain`, `FloatingOrbs`, `FogLayer`, `LightSweep`, `TunnelEffect`, `Vignette`
-Text: `GlitchText`, `Typewriter`, `StaggeredWords`
-Motion: `FadeIn`, `ScalePop`, `PulseGlow`
-UI: `ChatInterface`, `GitHubCard`, `PhoneFrame`, `BrandBadge`
-DataViz: `AnimatedCounter`, `ProgressRing`, `AnimatedBar`, `NeuralNetworkGraph`
-Overlays: `ImpactText`, `LowerThird`
+| Kit | Components |
+|-----|-----------|
+| Backgrounds | `GradientBackground`, `ParticleField`, `GridPattern`, `BokehBackground`, `Glow` |
+| Cinema | `ChromaticAberration`, `FilmGrain`, `FloatingOrbs`, `FogLayer`, `LightSweep`, `TunnelEffect`, `Vignette` |
+| Text | `GlitchText`, `Typewriter`, `StaggeredWords` |
+| Motion | `FadeIn`, `ScalePop`, `PulseGlow` |
+| UI | `ChatInterface`, `GitHubCard`, `PhoneFrame`, `BrandBadge` |
+| DataViz | `AnimatedCounter`, `ProgressRing`, `AnimatedBar`, `NeuralNetworkGraph` |
+| Overlays | `ImpactText`, `LowerThird` |

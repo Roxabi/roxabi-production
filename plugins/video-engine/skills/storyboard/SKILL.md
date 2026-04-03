@@ -7,30 +7,25 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 # Storyboard
 
-**Goal:** Plan a video composition before building — define scenes, timing, narrative arc, VO draft, and visual direction. Output a structured spec that `/compose` and `/voice-over` can consume directly.
+**Goal:** Plan a composition before building — define scenes, timing, narrative arc, VO draft, visual direction. Output a spec `/compose` and `/voice-over` consume directly.
+
+Let: P = `compositions/<name>`, W = ~2.5w/s VO pacing
 
 ## Steps
 
-1. **Gather the brief** — ask what's missing:
-   - **Subject:** What is the video about?
-   - **Audience:** developers / investors / users / general public
-   - **Duration:** target seconds (default 30–60s)
-   - **Tone:** cinematic / energetic / professional / playful / dramatic
-   - **Key messages:** 3–5 bullet points to convey
-   - **CTA:** What should the viewer do after watching?
-   - **Reference:** Existing compositions or external videos for style reference
+1. **Gather brief** — ask what's missing: Subject | Audience (developers/investors/users/general) | Duration (default 30–60s) | Tone (cinematic/energetic/professional/playful/dramatic) | Key messages (3–5 bullets) | CTA | Reference (existing compositions or external videos).
 
-2. **Choose narrative structure** — based on the brief:
+2. **Choose narrative structure:**
 
    | Structure | Best for | Pattern |
    |-----------|----------|---------|
-   | **Hook → Problem → Solution → CTA** | Product launches, demos | Attention → Pain → Relief → Action |
-   | **Before → After → Bridge** | Transformations, upgrades | Old world → New world → How |
-   | **Story arc** | Brand films, case studies | Setup → Rising action → Climax → Resolution |
-   | **Feature showcase** | Demos, tutorials | Intro → Feature 1 → Feature 2 → ... → Wrap |
-   | **Countdown/listicle** | Social, short-form | N → N-1 → ... → 1 → CTA |
+   | Hook → Problem → Solution → CTA | Product launches, demos | Attention → Pain → Relief → Action |
+   | Before → After → Bridge | Transformations, upgrades | Old → New → How |
+   | Story arc | Brand films, case studies | Setup → Rising → Climax → Resolution |
+   | Feature showcase | Demos, tutorials | Intro → Feature 1 → … → Wrap |
+   | Countdown/listicle | Social, short-form | N → N-1 → … → 1 → CTA |
 
-3. **Plan scenes** — for each scene, define:
+3. **Plan scenes** — ∀ scene define:
 
    ```markdown
    ### Scene N — <Title> [Xs, frames F1–F2]
@@ -39,13 +34,13 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
    - Background: <component> with <props>
    - Main element: <component>
    - Effects: <components>
-   - Transition in: <type> (fade/wipe/zoom/slide)
+   - Transition in: <type>
 
    **Text on screen:**
    > The text the viewer sees
 
    **Narration (VO):**
-   > What the narrator says during this scene
+   > What the narrator says
 
    **Mood:** <emotion> — <color palette hint>
 
@@ -55,38 +50,30 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
    - `Vignette` (kit-cinema)
    ```
 
-4. **Timing budget** — verify total adds up:
+4. **Timing budget** — verify total ≤ target:
 
-   | Scene | Duration | Cumulative | VO words (~2.5w/s) |
-   |-------|---------|------------|-------------------|
+   | Scene | Duration | Cumulative | VO words (W) |
+   |-------|---------|------------|--------------|
    | Opening | 5s | 0:05 | ~12 |
    | Scene 2 | 8s | 0:13 | ~20 |
    | Scene 3 | 8s | 0:21 | ~20 |
    | Closing | 5s | 0:26 | ~12 |
-   | **Total** | **26s** | | **~64 words** |
+   | **Total** | **26s** | | **~64** |
 
-   Flag if total exceeds target duration. Adjust scene lengths or cut scenes.
+   Total exceeds target → flag, adjust lengths or cut scenes.
 
 5. **Color palette** — define or extract from reference:
    ```
-   BG:      #0a0a0f
-   Primary: #e85d04
-   Accent:  #3b82f6
-   Text:    #fafafa
-   Muted:   #6b7280
+   BG: #0a0a0f  Primary: #e85d04  Accent: #3b82f6  Text: #fafafa  Muted: #6b7280
    ```
 
-6. **Write the storyboard file** — save to `compositions/<name>/storyboard.md`:
+6. **Write storyboard file** — save to `P/storyboard.md`:
 
    ```markdown
    # Storyboard: <Name>
 
    ## Brief
-   - Subject: ...
-   - Audience: ...
-   - Duration: Xs
-   - Tone: ...
-   - Format: 1920x1080
+   - Subject: ...  Audience: ...  Duration: Xs  Tone: ...  Format: 1920x1080
 
    ## Narrative Structure
    Hook → Problem → Solution → CTA
@@ -123,14 +110,6 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
    - [ ] Final MP4 (`/render`)
    ```
 
-7. **Present for approval** — show the storyboard to the user. They can:
-   - Adjust scene order, duration, or content
-   - Change visual direction or components
-   - Modify VO tone or script
-   - Add/remove scenes
+7. **Present for approval** — user can adjust scene order/duration/content, visual direction, VO tone, scenes.
 
-8. **Hand off** — once approved, the storyboard feeds directly into:
-   - `/compose` — uses the scene breakdown and component list
-   - `/voice-over` — uses the VO draft and voice profile
-   - `/soundtrack` — uses the audio plan
-   - Or `/produce` — runs the full pipeline from this storyboard
+8. **Hand off** — approved storyboard feeds: `/compose` (scene breakdown + components) | `/voice-over` (VO draft + voice profile) | `/soundtrack` (audio plan) | `/produce` (full pipeline).

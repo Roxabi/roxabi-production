@@ -7,28 +7,24 @@ allowed-tools: Read, Bash, Glob, Grep
 
 # Render
 
-**Goal:** Render a registered composition to an MP4 file via the CLI pipeline.
+**Goal:** Render a registered composition to MP4 via the CLI pipeline.
 
 ## Steps
 
-1. **Discover compositions** — read `dev/main.tsx` to list registered composition IDs and their metadata (fps, duration, dimensions).
+1. **Discover compositions** — read `dev/main.tsx` for registered IDs + metadata (fps, duration, dimensions).
 
-2. **Confirm target** — if the user did not specify a composition ID, show the list and ask which one to render. If only one exists, proceed automatically.
+2. **Confirm target** — user didn't specify → show list, ask. ∃ only one → proceed automatically.
 
-3. **Auto-detect audio assets** — before building the command, scan for available audio:
+3. **Auto-detect audio** — scan before building command:
    ```bash
-   # Check for VO
    ls compositions/*/vo.wav dist/*/vo.wav 2>/dev/null
-   # Check for soundtrack spec
    ls compositions/*/soundtrack.md 2>/dev/null
-   # Check for BGM
    ls assets/bgm/*.mp3 2>/dev/null
-   # Check for SFX
    ls assets/sfx/*.mp3 2>/dev/null
    ```
-   If a `soundtrack.md` exists for the composition, parse it and auto-populate `--audio`, `--bgm`, and `--sfx` flags. If only a VO WAV exists, add `--audio`. Present the detected audio to the user for confirmation.
+   `soundtrack.md` exists → parse, auto-populate `--audio`/`--bgm`/`--sfx`. ∄ soundtrack but ∃ VO WAV → add `--audio`. Present detected audio for confirmation.
 
-4. **Build render command:**
+4. **Build command:**
    ```bash
    bun render --composition <id> --fps <fps> --output dist/<id>.mp4 [--codec h264] \
      [--audio compositions/<name>/vo.wav] \
@@ -36,11 +32,11 @@ allowed-tools: Read, Bash, Glob, Grep
      [--sfx=t=<time>:file=assets/sfx/<name>.mp3:vol=<vol>] ...
    ```
 
-5. **Run the render** — execute the command with Bash. Stream output so the user can see progress.
+5. **Run render** — execute with Bash, stream output for progress.
 
-6. **Report result** — on success, report the output path, file size, and audio layers included. On failure, surface the error and suggest fixes (missing codec, Puppeteer timeout, FFmpeg not found).
+6. **Report** — success: output path + file size + audio layers. Failure: surface error + suggest fixes (missing codec, Puppeteer timeout, FFmpeg not found).
 
-## Audio flags reference
+## Audio flags
 
 | Flag | Format | Example |
 |------|--------|---------|

@@ -7,34 +7,33 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Agent
 
 # Reverse-Engineer
 
-**Goal:** Run the VLM-powered video analysis pipeline on one or more videos, aggregate results, and update the component inventory with new build targets.
+**Goal:** Run the VLM-powered video analysis pipeline on one or more videos, aggregate results, update component inventory with new build targets.
 
-## Pipeline overview
+Let: A = `artifacts/video-analyses/`, W = `web-intel`, INV = `COMPONENT_INVENTORY.md`
+
+## Pipeline
 
 ```
 YouTube URL → yt-dlp → ffmpeg (scene detection) → qwen3-vl VLM (frame descriptions)
   → per-video JSON → aggregation → COMPONENT_INVENTORY.md → new TSX components
 ```
 
-This wraps the existing `web-intel/scripts/video_analyzer.py` pipeline and the aggregation workflow from the original retro engineering session (12 videos, 1946 frames).
+Wraps `web-intel/scripts/video_analyzer.py` and the aggregation workflow (12 videos, 1946 frames).
 
 ## Entry points
 
 ```
-/reverse-engineer https://youtube.com/watch?v=...                  # Single video
-/reverse-engineer https://youtube.com/watch?v=... https://...      # Multiple videos
-/reverse-engineer --aggregate                                       # Re-aggregate existing analyses
-/reverse-engineer --inventory                                       # Update component inventory from aggregation
-/reverse-engineer --build <ComponentName>                            # Build a component from the inventory
+/reverse-engineer <URL>                  # Single video
+/reverse-engineer <URL1> <URL2> ...      # Multiple videos
+/reverse-engineer --aggregate            # Re-aggregate existing analyses
+/reverse-engineer --inventory            # Update INV from aggregation
+/reverse-engineer --build <ComponentName> # Build component from INV
 ```
 
 ## Prerequisites
 
-- `yt-dlp`, `ffmpeg`, `ollama` installed and in PATH
-- A vision model pulled in Ollama (auto-detected by VRAM):
-  - 12 GB+ VRAM → `qwen3-vl:8b`
-  - 6–12 GB VRAM → `qwen3-vl:4b`
-  - <6 GB → `qwen3-vl:2b`
+- `yt-dlp`, `ffmpeg`, `ollama` in PATH
+- Vision model in Ollama (auto-detected by VRAM): 12GB+ → `qwen3-vl:8b` | 6–12GB → `qwen3-vl:4b` | <6GB → `qwen3-vl:2b`
 - `web-intel` plugin at `~/projects/roxabi-plugins/plugins/web-intel/`
 
 ## Steps
@@ -47,15 +46,14 @@ This wraps the existing `web-intel/scripts/video_analyzer.py` pipeline and the a
    ollama list | grep qwen3-vl
    ```
 
-2. **Run the video analyzer** for each URL:
+2. **Run analyzer** ∀ URL:
    ```bash
    cd ~/projects/roxabi-plugins/plugins/web-intel && \
    uv run python scripts/video_analyzer.py "<URL>" \
      --model qwen3-vl:4b \
-     --output ~/projects/roxabi-production/artifacts/video-analyses/<VIDEO_ID>.json
+     --output ~/projects/roxabi-production/A/<VIDEO_ID>.json
    ```
-
-   Extract `VIDEO_ID` from URL: `echo "$URL" | sed 's/.*v=//'`
+   Extract `VIDEO_ID`: `echo "$URL" | sed 's/.*v=//'`
 
    **CLI flags:**
    | Flag | Default | Description |
@@ -64,116 +62,57 @@ This wraps the existing `web-intel/scripts/video_analyzer.py` pipeline and the a
    | `--fps` | 1.0 | Frames/sec (only with `--no-scene-detection`) |
    | `--output` / `-o` | stdout | Output JSON path |
    | `--keep-frames` | off | Keep extracted frame JPGs |
-   | `--no-scene-detection` | off | Disable smart scene detection, use uniform FPS |
+   | `--no-scene-detection` | off | Use uniform FPS instead |
    | `--scene-threshold` | 0.2 | Scene change sensitivity 0–1 (lower = more frames) |
 
-   **What the pipeline does internally:**
-   1. Scrapes metadata + transcript via web-intel scraper
-   2. Downloads video via yt-dlp (1080p max)
-   3. Extracts frames using ffmpeg scene detection (or uniform FPS)
-   4. Auto-detects GPU and selects best VLM via `gpu_detector.py`
-   5. Batch-describes every frame via Ollama `/api/chat` (reads from `thinking` field for qwen3-vl)
-   6. Outputs JSON with: `url`, `metadata`, `frame_descriptions[]`, `stats`
+   **Pipeline internals:** scrape metadata+transcript → yt-dlp download (1080p max) → ffmpeg frame extraction → GPU auto-detect + VLM select → batch describe via Ollama `/api/chat` (reads `thinking` field for qwen3-vl) → output JSON.
 
-   **Frame description prompt extracts per frame:**
-   - Scene type: `3d_scene`, `2d_graphics`, `text_card`, `illustration`, `mixed`, `live_action`
-   - Main objects with positions
-   - Background type and colors
-   - Color palette (3–5 colors)
-   - On-screen text (verbatim)
-   - Visual effects: `chromatic_aberration`, `glow`, `blur`, `fog`, `particles`, `glitch`, `grain`, `bokeh`, `vignette`
-   - What appears animated
-   - Suggested React component name (PascalCase)
+   **∀ frame, description extracts:** scene type (`3d_scene`/`2d_graphics`/`text_card`/`illustration`/`mixed`/`live_action`) | main objects + positions | background type + colors | color palette (3–5) | on-screen text (verbatim) | visual effects (`chromatic_aberration`/`glow`/`blur`/`fog`/`particles`/`glitch`/`grain`/`bokeh`/`vignette`) | animated elements | suggested React component name (PascalCase).
 
-   **Output JSON structure:**
+   **Output JSON:**
    ```json
    {
      "url": "https://...",
      "metadata": { "text": "transcript..." },
      "model": "qwen3-vl:4b",
      "frame_descriptions": [
-       {
-         "frame": 1,
-         "second": 0.0,
-         "timestamp": "0:00",
-         "type": "scene_change",
-         "description": "...",
-         "inference_ms": 2034
-       }
+       { "frame": 1, "second": 0.0, "timestamp": "0:00", "type": "scene_change", "description": "...", "inference_ms": 2034 }
      ],
      "stats": { "total_frames": 148, "described": 148, "failed": 0, "avg_inference_ms": 2034 }
    }
    ```
 
-3. **For batch analysis** (multiple URLs), run sequentially — each video takes 5–15 minutes depending on length and GPU. Log progress:
-   ```bash
-   echo "[$N/${TOTAL}] Processing $VIDEO_ID ..."
-   ```
+3. **Batch** — run sequentially (5–15 min/video). Log: `echo "[$N/${TOTAL}] Processing $VIDEO_ID ..."`.
 
 ### Phase 2 — Aggregate
 
-4. **Aggregate all analyses** — read every `*.json` file in `artifacts/video-analyses/` (excluding `AGGREGATION.json`) and produce:
-
-   **`AGGREGATION.md`** — human-readable report with:
-   - Per-video summary table (ID, title, frames, top scene types, top effects)
-   - Global statistics:
-     - Scene type totals (ranked by frequency)
-     - Visual effect totals (ranked by frequency)
-     - Color palette distribution
-     - Top 50 keywords
-   - Component candidates (PascalCase words extracted from descriptions, ranked by count)
-
-   **`AGGREGATION.json`** — machine-readable version with the same data structured for programmatic use.
-
-   Both saved to `artifacts/video-analyses/`.
+4. **Aggregate** — read every `A/*.json` (excluding `AGGREGATION.json`), produce:
+   - **`A/AGGREGATION.md`** — per-video summary table (ID/title/frames/top scene types/top effects); global stats (scene type totals ranked, effect totals ranked, color distribution, top 50 keywords); component candidates (PascalCase, ranked by count).
+   - **`A/AGGREGATION.json`** — machine-readable same data.
 
 ### Phase 3 — Update component inventory
 
-5. **Diff against existing components** — read all kits to find what's already built:
-   ```bash
-   find kits/ -name "*.tsx" -not -name "index.ts" | sort
-   ```
+5. **Diff against built** — `find kits/ -name "*.tsx" -not -name "index.ts" | sort`. Categorize candidates:
+   - Already built | HIGH (>500 frames or 5+ videos) | MEDIUM (50–500 or 3–4 videos) | LOW (<50 or 1–2 videos) | Skip (video-specific, not reusable).
 
-   Compare component candidates from the aggregation against existing exports. Categorize each as:
-   - **Already built** — component exists in a kit
-   - **HIGH PRIORITY** — >500 frame occurrences or present in 5+ videos, not yet built
-   - **MEDIUM PRIORITY** — 50–500 occurrences or 3–4 videos
-   - **LOW PRIORITY** — <50 occurrences or 1–2 videos
-   - **Skip** — too video-specific (e.g., `SamouraiDansLa` = content from a specific video, not a reusable pattern)
+6. **Update `INV`** — updated "Already Built" table + new priority entries (name/why/complexity/notes) + recommended build order (impact × ease).
 
-6. **Update `COMPONENT_INVENTORY.md`** with:
-   - Updated "Already Built" table
-   - New entries in priority sections with: component name, why (frequency/pattern), estimated complexity, implementation notes
-   - Recommended build order (impact × ease)
+### Phase 4 — Build components (`--build`)
 
-### Phase 4 — Build components (optional, with `--build`)
+7. **Build target component** — read INV entry → read 2–3 similar existing components (same kit) → generate TSX in kit dir → export from `index.ts`.
 
-7. **Build a specific component** from the inventory:
-   - Read the inventory entry for the target component
-   - Read 2–3 similar existing components from the same kit for patterns
-   - Generate the TSX file in the appropriate kit directory
-   - Export from the kit's `index.ts`
-   - Follow conventions:
-     - `useCurrentFrame()` and `useVideoConfig()` from core
-     - `delay` and `duration` props for timing
-     - `interpolate()` and `spring()` for animations
-     - Color props (never hardcode)
-     - JSDoc comment with component purpose
-   - Run `bun run typecheck`
-   - Update COMPONENT_INVENTORY.md to move from "Needs to be Built" to "Already Built"
+   Conventions: `useCurrentFrame()` + `useVideoConfig()` from core | `delay`/`duration` props | `interpolate()`/`spring()` for animation | color props (never hardcode) | JSDoc comment. Run `bun run typecheck`. Move INV entry from "Needs to be Built" to "Already Built".
 
 ## Output directory
 
-All analysis results are stored in `artifacts/video-analyses/`:
-
 ```
 artifacts/video-analyses/
-├── <VIDEO_ID>.json         # Per-video frame descriptions (one per analyzed video)
-├── AGGREGATION.md          # Human-readable global report
-├── AGGREGATION.json        # Machine-readable aggregation
-├── COMPONENT_INVENTORY.md  # Prioritized component build roadmap
-├── run_batch.sh            # Batch pipeline script (for multi-video runs)
-└── batch.log               # Execution log
+├── <VIDEO_ID>.json       # Per-video frame descriptions
+├── AGGREGATION.md        # Human-readable global report
+├── AGGREGATION.json      # Machine-readable aggregation
+├── COMPONENT_INVENTORY.md # Prioritized build roadmap
+├── run_batch.sh          # Batch pipeline script
+└── batch.log             # Execution log
 ```
 
-New analyses add to the corpus incrementally — `--aggregate` re-processes all `*.json` files in the directory.
+`--aggregate` re-processes all `*.json` incrementally.

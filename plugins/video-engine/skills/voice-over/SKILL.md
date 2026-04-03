@@ -9,30 +9,28 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 **Goal:** Analyze a composition's scene structure, generate a VoiceCLI-compatible `.md` voice script, and render it to WAV.
 
+Let: P = `compositions/<name>`, V = `voicecli`, VO = voice-over script
+
 ## Prerequisites
 
-- VoiceCLI installed and available as `voicecli` (or via `uv run voicecli` from `~/projects/voiceCLI`)
-- TTS daemon running for fast generation (`make tts` or `voicecli serve --engine qwen`)
+- VoiceCLI installed as `voicecli` (or `uv run voicecli` from `~/projects/voiceCLI`)
+- TTS daemon running (`make tts` or `voicecli serve --engine qwen`)
 
 ## Steps
 
-1. **Identify composition** — read `dev/main.tsx` to list compositions. If the user didn't specify one, ask. Then read the composition TSX file to extract:
-   - Scene count and timing (frame ranges → seconds at the composition's fps)
-   - Text content visible in each scene (titles, body text, captions, terminal lines)
-   - Narrative arc (opening hook → content → closing)
-   - Mood/tone per scene (inferred from components: GlitchText = edgy, BokehBackground = warm, TunnelEffect = intense)
+1. **Identify composition** — read `dev/main.tsx`, ask if unspecified. Extract from TSX: scene count + timing (frames→seconds at composition fps), visible text per scene, narrative arc (hook→content→close), mood/tone (GlitchText=edgy, BokehBackground=warm, TunnelEffect=intense).
 
-2. **Choose voice profile** — ask the user or infer from composition style:
+2. **Choose voice profile** — ask or infer from style:
 
-   | Style | Recommended voice | Engine | Personality |
-   |-------|------------------|--------|-------------|
-   | Tech product launch | `Sohee` or `Ryan` | qwen | Confident, measured |
+   | Style | Voice | Engine | Personality |
+   |-------|-------|--------|-------------|
+   | Tech product launch | `Sohee`/`Ryan` | qwen | Confident, measured |
    | Warm storytelling | `Vivian` | qwen | Warm, expressive |
    | Energetic demo | `Dylan` | qwen | Upbeat, fast-paced |
    | Cinematic | `Eric` | qwen | Deep, dramatic |
    | Multilingual | any | chatterbox | Adjust per language |
 
-3. **Generate the script** — create `compositions/<name>/vo.md` with:
+3. **Generate script** — create `P/vo.md`:
 
    ```markdown
    ---
@@ -58,45 +56,37 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
    The reveal narration.
    ```
 
-   **Rules:**
-   - Each segment must fit within its scene duration (~2.5 words/second for natural pacing)
-   - Scene markers in `[brackets]` are stripped by VoiceCLI — they're for human reference only
-   - Use `<!-- directives -->` for per-segment emotion/speed shifts
-   - Use paralinguistic tags (`[laugh]`, `[sigh]`) sparingly for naturalness
-   - Leave 0.5–1s breathing room at scene boundaries for transitions
+   Rules: segment fits scene duration (~2.5w/s) | `[brackets]` stripped by VoiceCLI | `<!-- directives -->` for per-segment shifts | paralinguistic tags sparingly | 0.5–1s breathing room at boundaries.
 
-4. **Render the voice-over:**
+4. **Render:**
    ```bash
    cd ~/projects/voiceCLI && uv run voicecli generate \
-     /path/to/compositions/<name>/vo.md \
-     -o /path/to/compositions/<name>/vo.wav \
+     /path/to/P/vo.md \
+     -o /path/to/P/vo.wav \
      --mp3
    ```
 
-5. **Verify timing** — check the generated WAV duration matches the composition duration:
+5. **Verify timing:**
    ```bash
-   ffprobe -v error -show_entries format=duration -of csv=p=0 compositions/<name>/vo.wav
+   ffprobe -v error -show_entries format=duration -of csv=p=0 P/vo.wav
    ```
-   If the VO is too long, suggest trimming text. If too short, suggest adding pauses via `segment_gap` or expanding narration.
+   VO too long → trim text. VO too short → increase `segment_gap` or expand narration.
 
-6. **Report result** — show:
-   - Output path (`compositions/<name>/vo.wav`)
-   - Duration vs composition duration
-   - Ready-to-use render flag: `--audio compositions/<name>/vo.wav`
+6. **Report:** output path (`P/vo.wav`), duration vs composition duration, render flag `--audio P/vo.wav`.
 
 ## Pacing reference
 
-| Content type | Words/second | Words for 6s scene |
-|-------------|-------------|-------------------|
-| Dramatic/slow | 2.0 | ~12 words |
-| Conversational | 2.5 | ~15 words |
-| Energetic/fast | 3.5 | ~21 words |
+| Content type | Words/second | Words for 6s |
+|-------------|-------------|--------------|
+| Dramatic/slow | 2.0 | ~12 |
+| Conversational | 2.5 | ~15 |
+| Energetic/fast | 3.5 | ~21 |
 
-## Engine selection guide
+## Engine selection
 
 | Need | Engine | Why |
 |------|--------|-----|
 | Emotion control | `qwen` | Structured instruct (accent, personality, speed, emotion) |
-| Speed | `qwen-fast` | CUDA graph acceleration, 5-9x faster |
-| Non-English | `chatterbox` | 23 languages with natural accent |
-| Paralinguistic tags | `chatterbox-turbo` | Native `[laugh]`, `[sigh]` support (English only) |
+| Speed | `qwen-fast` | CUDA graph, 5-9x faster |
+| Non-English | `chatterbox` | 23 languages |
+| Paralinguistic tags | `chatterbox-turbo` | Native `[laugh]`/`[sigh]` (English only) |

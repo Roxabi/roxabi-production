@@ -7,7 +7,9 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 # Soundtrack
 
-**Goal:** Orchestrate voice-over, background music, and sound effects for a composition, then output the complete render command with all audio flags.
+**Goal:** Orchestrate VO + BGM + SFX for a composition; output the complete render command with all audio flags.
+
+Let: P = `compositions/<name>`, A = `assets/`
 
 ## Prerequisites
 
@@ -17,26 +19,21 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 
 ## Steps
 
-1. **Identify composition** — read `dev/main.tsx` for the target composition. Read the TSX to understand scene structure and timing.
+1. **Identify composition** — read `dev/main.tsx` for target. Read TSX for scene structure + timing.
 
-2. **Inventory existing audio** — check what's already available:
+2. **Inventory existing audio:**
    ```bash
-   # VO
-   ls compositions/<name>/vo.wav 2>/dev/null
-   # SFX
-   ls assets/sfx/*.mp3 2>/dev/null
-   # BGM
-   ls assets/bgm/*.mp3 2>/dev/null
+   ls P/vo.wav 2>/dev/null
+   ls A/sfx/*.mp3 2>/dev/null
+   ls A/bgm/*.mp3 2>/dev/null
    ```
 
-3. **Voice-over** — if no VO exists, generate one using the `/voice-over` workflow:
-   - Analyze scenes → write `vo.md` → render with VoiceCLI
-   - If VO already exists, confirm with user whether to regenerate
+3. **Voice-over** — ∄ VO → run `/voice-over` workflow (scenes → `vo.md` → VoiceCLI render). ∃ VO → confirm with user before regenerating.
 
-4. **SFX cue list** — analyze the composition for moments that need sound effects:
+4. **SFX cue list** — analyze composition for moments needing SFX:
 
-   | Trigger | SFX type | Example |
-   |---------|----------|---------|
+   | Trigger | SFX type | Example file |
+   |---------|----------|-------------|
    | `GlitchText` entrance | glitch/digital | `glitch-digital.mp3` |
    | `SceneTransition` | whoosh/swoosh | `whoosh-trans.mp3` |
    | Title reveal | impact/boom | `impact-boom.mp3` |
@@ -45,36 +42,29 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
    | Counter/number reveal | data processing | `data-process.mp3` |
    | Final tagline | success/resolution | `success-end.mp3` |
 
-   For each cue, determine:
-   - **Timestamp** (scene start frame / fps = seconds)
-   - **SFX file** (check `assets/sfx/` first)
-   - **Volume** (0.0–1.0, default 0.8; lower if VO is speaking)
+   ∀ cue: timestamp (frame/fps=seconds) | SFX file (check `A/sfx/` first) | volume (0–1, default 0.8; lower when VO speaking).
 
-5. **Search missing SFX** — for any cue without a matching file:
+5. **Search missing SFX** — ∀ cue ∄ matching file:
    ```bash
    npx tsx dev/freesound.ts search "whoosh" --max=5
    npx tsx dev/freesound.ts download <id> <name>
    ```
-   Downloaded to `assets/sfx/<name>.mp3`.
+   Downloaded to `A/sfx/<name>.mp3`.
 
-6. **BGM selection** — if the user wants background music:
-   - Check `assets/bgm/` for existing tracks
-   - Suggest searching Freesound for ambient/loop tracks
-   - Recommend volume 0.15–0.25 (lower when VO is present)
-   - Default fade in/out: 2s
+6. **BGM selection** — check `A/bgm/` first. Volume 0.15–0.25 (lower when VO present). Default 2s fade in/out.
 
-7. **Build the soundtrack spec** — create `compositions/<name>/soundtrack.md` documenting the full audio plan:
+7. **Build soundtrack spec** — create `P/soundtrack.md`:
 
    ```markdown
    # Soundtrack: <composition-name>
 
    ## Voice-Over
-   - File: `compositions/<name>/vo.wav`
+   - File: `P/vo.wav`
    - Duration: Xs
    - Voice: Sohee (qwen)
 
    ## BGM
-   - File: `assets/bgm/ambient-loop.mp3`
+   - File: `A/bgm/ambient-loop.mp3`
    - Volume: 0.2
    - Fade in: 2s, Fade out: 2s
 
@@ -91,26 +81,23 @@ allowed-tools: Read, Write, Edit, Bash, Glob, Grep
    bun render --composition <id> \
      --fps 30 \
      --output dist/<id>.mp4 \
-     --audio compositions/<name>/vo.wav \
-     --bgm=assets/bgm/track.mp3:vol=0.2 \
-     --sfx=t=0.5:file=assets/sfx/glitch-digital.mp3:vol=0.8 \
-     --sfx=t=7.0:file=assets/sfx/whoosh-trans.mp3:vol=0.7 \
-     --sfx=t=13.0:file=assets/sfx/impact-boom.mp3:vol=0.9
+     --audio P/vo.wav \
+     --bgm=A/bgm/track.mp3:vol=0.2 \
+     --sfx=t=0.5:file=A/sfx/glitch-digital.mp3:vol=0.8 \
+     --sfx=t=7.0:file=A/sfx/whoosh-trans.mp3:vol=0.7 \
+     --sfx=t=13.0:file=A/sfx/impact-boom.mp3:vol=0.9
    ```
 
-9. **Report** — present the full command and the soundtrack spec. Ask if the user wants to render now or adjust cues first.
+9. **Report** — present full command + spec. Ask: render now or adjust cues first.
 
 ## Volume guidelines
 
 | Layer | Default | With VO | Notes |
 |-------|---------|---------|-------|
-| VO | 1.0 | 1.0 | Always full volume |
+| VO | 1.0 | 1.0 | Always full |
 | BGM | 0.2 | 0.15 | Duck under speech |
 | SFX | 0.8 | 0.5–0.7 | Reduce if overlapping VO |
 
 ## SFX timing tips
 
-- Place SFX 0.1–0.3s **before** the visual beat for perceived sync (audio leads visual)
-- Transition whooshes: align with `SceneTransition` start frame
-- Impact sounds: align with text entrance frame
-- Ambient SFX: loop or extend to fill scene duration
+SFX 0.1–0.3s before visual beat → perceived sync (audio leads visual). Transition whooshes → align with `SceneTransition` start. Impact sounds → align with text entrance frame. Ambient SFX → loop or extend to fill scene.
