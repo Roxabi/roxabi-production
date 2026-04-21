@@ -91,7 +91,8 @@ export async function render(config: RenderConfig) {
 
   const compositionId = validateCompositionId(rawId)
 
-  const serverUrl = `http://localhost:3001`
+  const port = parseInt(process.env.ROXVID_PORT || '3002', 10)
+  const serverUrl = `http://localhost:${port}`
   const framesDir = path.join('/tmp', `roxvid-${compositionId}-${Date.now()}`)
   fs.mkdirSync(framesDir, { recursive: true })
 
