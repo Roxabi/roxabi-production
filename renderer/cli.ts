@@ -18,8 +18,16 @@ import { render } from './render'
 import type { BgmTrack, SfxCue } from './config'
 
 const args = process.argv.slice(2)
-const compositionId = args[0]
-const outputPath = args[1]?.startsWith('--') ? `out/${args[0]}.mp4` : (args[1] || `out/${args[0]}.mp4`)
+
+// Support both positional and flag-based composition ID
+let compositionId = args.find(a => a.startsWith('--composition='))?.split('=')[1]
+if (!compositionId) {
+  compositionId = args.find(a => !a.startsWith('--'))
+}
+const outputIndex = args.findIndex(a => a.startsWith('--output='))
+const outputPath = outputIndex >= 0
+  ? args[outputIndex].split('=')[1]
+  : (args[1]?.startsWith('--') ? `out/${compositionId}.mp4` : (args[1] || `out/${compositionId}.mp4`))
 
 if (!compositionId) {
   console.error('Usage: npx tsx renderer/cli.ts <CompositionId> [output.mp4] [--audio=...] [--bgm=...] [--sfx=...]')

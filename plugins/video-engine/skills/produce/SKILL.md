@@ -47,7 +47,23 @@ Brief → Storyboard → Compose → Voice-Over → Soundtrack → Render
 
 ### Phase 6 — Render
 
-8. **Run `/render`:**
+8. **Audio Design Rules** — before render, consult `references/audio-design-rules.md`:
+
+   **Dual-track principle (mandatory):**
+   - SFX (highpass 800Hz) — marks visual beats, frame-synced
+   - BGM (lowpass 4kHz) — emotional bed, section-synced
+
+   **Density formulas (per 10s):**
+   - Dense demo (Artifacts): ~9 SFX
+   - Balanced (Word): ~4 SFX
+   - Ambient (Code Desktop): 0 SFX
+
+   **Volume:**
+   - BGM: 0.40-0.50
+   - SFX: 1.00
+   - Use `normalize=0` in amix
+
+9. **Run `/render`:**
    ```bash
    bun render --composition <id> \
      --fps 30 \
@@ -58,11 +74,13 @@ Brief → Storyboard → Compose → Voice-Over → Soundtrack → Render
      [additional sfx cues]
    ```
 
-9. **Final report:** output path + size | duration | audio layers | composition file locations | suggest next steps (social cuts, vertical, iterate).
+10. **Final report:** output path + size | duration | audio layers | composition file locations | suggest next steps (social cuts, vertical, iterate).
 
 ## Quick mode defaults
 
 Subject "X" with no details → Duration: 30s | Format: 1920×1080 | Tone: Professional | Voice: Sohee (qwen), English | BGM: ambient vol 0.2 | SFX: auto-matched from `assets/sfx/`.
+
+**SFX density** — choose based on product personality: dense demo (Artifacts) → ~9/10s | balanced (Word) → ~4/10s | ambient (Code Desktop) → 0/10s.
 
 Skip approval only if user explicitly requests ("just do it" / "quick" / "skip approval").
 

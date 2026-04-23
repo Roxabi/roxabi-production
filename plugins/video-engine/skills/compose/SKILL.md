@@ -35,6 +35,30 @@ Let: P = `compositions/<name>`, N = `<Name>`
 
 6. **Generate VO draft** — create `P/vo.md`: extract text ∀ scene (titles/body/captions), map timing → narration segments, add VoiceCLI frontmatter (voice/engine/emotion/segment_gap), `<!-- directives -->` for per-scene shifts, target ~2.5w/s. Tell user: "VO draft saved — run `/voice-over` to refine and render."
 
+## Pre-compose Checks
+
+### Brand Assets (if brand mentioned)
+If task involves a specific brand/company, check for `brand-spec.md` or run Core Asset Protocol:
+1. Logo — mandatory for any brand
+2. Product images — mandatory for physical products
+3. UI screenshots — mandatory for digital products
+4. Colors — auxiliary
+
+**Never use CSS silhouettes for product images.** Find real assets.
+
+See `references/core-asset-protocol.md` for full 5-step process.
+
+### Anti-AI Slop Quick Check
+| Avoid | Use Instead |
+|-------|-------------|
+| Purple gradients | Brand colors |
+| Emoji as icons | Real icons or nothing |
+| Inter as display | Serif display + system body |
+| CSS silhouettes | Real product images |
+| Decorative icons everywhere | Only where meaningful |
+
+See `references/anti-ai-slop.md` for full checklist.
+
 ## Kit quick-reference
 
 | Kit | Components |

@@ -113,7 +113,7 @@ const SceneOpening: React.FC = () => {
   return (
     <AbsoluteFill style={{ background: '#050308', overflow: 'hidden' }}>
       <GradientBackground colors={['#0d0a14', '#1a0a2e', '#050308']} type="radial" animate={false} />
-      <FloatingOrbs count={4} color1="#7c5ce7" color2="#e056cd" maxSize={700} blur={90} speed={0.4} />
+      <FloatingOrbs count={4} color1="#f59e0b" color2="#d97706" maxSize={700} blur={90} speed={0.4} />
       <FilmGrain opacity={0.03} />
       <Chrome phase="roxabi-production" day="v1.0" accent="amber" />
 
@@ -219,11 +219,11 @@ const SceneCinema: React.FC = () => (
   <AbsoluteFill style={{ background: '#050308', overflow: 'hidden' }}>
     <BokehBackground
       count={12}
-      colors={['#f59e0b44', '#f43f5e33', '#7c5ce744']}
+      colors={['#f59e0b44', '#d9770633', '#fbbf2444']}
       minSize={80}
       maxSize={350}
     />
-    <FloatingOrbs count={4} color1="#f59e0b" color2="#f43f5e" maxSize={500} blur={70} speed={0.3} />
+    <FloatingOrbs count={4} color1="#f59e0b" color2="#d97706" maxSize={500} blur={70} speed={0.3} />
     <FogLayer position="bottom" color="rgba(245,158,11" intensity={0.3} animated />
     <LightSweep delay={20} color="rgba(245,158,11,0.12)" width={20} />
     <FilmGrain opacity={0.04} />
@@ -283,7 +283,7 @@ const SceneUI: React.FC = () => (
       <PhoneFrame width={350} delay={0} float>
         <ChatInterface
           appName="Lyra"
-          avatarColors={['#7c5ce7', '#00cec9']}
+          avatarColors={['#f59e0b', '#00cec9']}
           avatarLetter="L"
           statusText="En ligne"
           messages={[
@@ -314,10 +314,10 @@ const SceneUI: React.FC = () => (
         <FadeIn delay={45} direction="up">
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <PulseGlow accent="cyan">
-              <BrandBadge icon="⚡" name="Roxabi" color="#22d3ee" variant="glass" size="md" delay={0} />
+              <BrandBadge name="Roxabi" color="#22d3ee" variant="glass" size="md" delay={0} />
             </PulseGlow>
-            <BrandBadge icon="🎬" name="Production" color="#7c5ce7" variant="outline" size="md" delay={20} />
-            <BrandBadge icon="🤖" name="Lyra AI" color="#f59e0b" variant="solid" size="md" delay={35} />
+            <BrandBadge name="Production" color="#f59e0b" variant="outline" size="md" delay={20} />
+            <BrandBadge name="Lyra AI" color="#f59e0b" variant="solid" size="md" delay={35} />
           </div>
         </FadeIn>
       </div>
@@ -354,7 +354,7 @@ const SceneDataViz: React.FC = () => (
         {[
           { value: 1946, label: 'frames analyzed', color: '#22d3ee', delay: 0 },
           { value: 12,   label: 'videos studied',  color: '#f59e0b', delay: 20 },
-          { value: 65,   label: 'components built', color: '#f43f5e', delay: 40 },
+          { value: 65,   label: 'components built', color: '#d97706', delay: 40 },
         ].map(({ value, label, color, delay }) => (
           <FadeIn key={label} delay={delay} direction="left">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -375,7 +375,7 @@ const SceneDataViz: React.FC = () => (
           <div style={{ display: 'flex', gap: 28 }}>
             <ProgressRing value={87} size={140} color="#22d3ee" label="Coverage" />
             <ProgressRing value={94} size={140} color="#f59e0b" label="Quality" />
-            <ProgressRing value={100} size={140} color="#f43f5e" label="Shipped" />
+            <ProgressRing value={100} size={140} color="#d97706" label="Shipped" />
           </div>
         </FadeIn>
 
@@ -383,7 +383,7 @@ const SceneDataViz: React.FC = () => (
           <AnimatedBar
             data={[
               { label: 'Glow',     value: 4385, color: '#22d3ee' },
-              { label: 'Chroma',   value: 2083, color: '#f43f5e' },
+              { label: 'Chroma',   value: 2083, color: '#d97706' },
               { label: 'TextCard', value: 1148, color: '#f59e0b' },
               { label: 'FogLayer', value: 1681, color: '#f97316' },
             ]}
@@ -404,7 +404,7 @@ const SceneDataViz: React.FC = () => (
 
 const SceneMotion: React.FC = () => (
   <AbsoluteFill style={{ background: '#080508', overflow: 'hidden' }}>
-    <ParticleField count={90} color="#7c5ce7" speed={0.7} direction="float" maxSize={5} />
+    <ParticleField count={90} color="#f59e0b" speed={0.7} direction="float" maxSize={5} />
     <FilmGrain opacity={0.025} />
 
     <AbsoluteFill
@@ -421,7 +421,7 @@ const SceneMotion: React.FC = () => (
             textAlign: 'center',
           }}
         >
-          Motion. <span style={{ color: '#7c5ce7' }}>Refined.</span>
+          Motion. <span style={{ color: '#f59e0b' }}>Refined.</span>
         </h2>
       </FadeIn>
 
@@ -431,9 +431,9 @@ const SceneMotion: React.FC = () => (
           [
             { shape: 'circle',  color: '#f59e0b', accent: 'amber', anim: 'pulse' },
             { shape: 'hexagon', color: '#22d3ee', accent: 'cyan',  anim: 'rotate' },
-            { shape: 'star',    color: '#f43f5e', accent: 'rose',  anim: 'morph' },
+            { shape: 'star',    color: '#fbbf24', accent: 'amber',  anim: 'morph' },
             { shape: 'triangle',color: '#f97316', accent: 'orange',anim: 'grow' },
-            { shape: 'square',  color: '#7c5ce7', accent: 'amber', anim: 'rotate' },
+            { shape: 'square',  color: '#fbbf24', accent: 'amber', anim: 'rotate' },
           ] as const
         ).map(({ shape, color, accent, anim }, i) => (
           <ScalePop key={shape} delay={15 + i * 14}>
@@ -550,7 +550,7 @@ const SceneClosing: React.FC = () => {
         <GradientBackground colors={['#1a0a2e', '#0d0a14', '#050308']} type="conic" animate />
       </ChromaticAberration>
 
-      <FloatingOrbs count={6} color1="#7c5ce7" color2="#f43f5e" maxSize={550} blur={85} speed={0.25} />
+      <FloatingOrbs count={6} color1="#f59e0b" color2="#d97706" maxSize={550} blur={85} speed={0.25} />
       <FilmGrain opacity={0.03} />
 
       <AbsoluteFill

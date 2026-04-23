@@ -84,3 +84,26 @@ Opening hook line.
 <!-- emotion: "Building intensity" -->
 Second scene narration.
 ```
+
+## References
+
+Design rules and best practices imported from [huashu-design](https://github.com/alchaincyf/huashu-design):
+
+| Reference | When to use | Key content |
+|-----------|-------------|-------------|
+| `animation-pitfalls.md` | Before building animations | 14 rules from real failures (layer positioning, cross-fade timing, pure render) |
+| `animation-best-practices.md` | When crafting motion | Anthropic-level narrative, easing, rhythm patterns |
+| `audio-design-rules.md` | When planning audio | SFX+BGM dual-track, frequency isolation, density formulas |
+| `core-asset-protocol.md` | When brand is involved | 5-step asset collection, "5-10-2-8" quality principle |
+| `anti-ai-slop.md` | Before final review | Patterns to avoid (purple gradients, CSS silhouettes, filler stats) |
+| `design-styles.md` | When brief is vague | 20 design philosophies for fallback advisor |
+| `brand-voice-integration.md` | Cross-plugin workflow | Pipeline with brand-voice plugin |
+
+## Plugin Integration
+
+**brand-voice** — Video-engine reads `brand-voice-guidelines.md` for:
+- Color palette → scene colors
+- Typography → font choices
+- "We Are / We Are Not" → visual constraints
+
+Run `/brand-voice:discover-brand` before `/storyboard` for brand-specific videos.

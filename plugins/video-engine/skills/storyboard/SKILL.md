@@ -67,7 +67,7 @@ Let: P = `compositions/<name>`, W = ~2.5w/s VO pacing
    BG: #0a0a0f  Primary: #e85d04  Accent: #3b82f6  Text: #fafafa  Muted: #6b7280
    ```
 
-6. **Write storyboard file** — save to `P/storyboard.md`:
+6. **Write storyboard file** — save to `P/storyboard.md`. If `references/brand-spec.md` exists, align colors, fonts, and logo usage with brand guidelines.
 
    ```markdown
    # Storyboard: <Name>
@@ -113,3 +113,18 @@ Let: P = `compositions/<name>`, W = ~2.5w/s VO pacing
 7. **Present for approval** — user can adjust scene order/duration/content, visual direction, VO tone, scenes.
 
 8. **Hand off** — approved storyboard feeds: `/compose` (scene breakdown + components) | `/voice-over` (VO draft + voice profile) | `/soundtrack` (audio plan) | `/produce` (full pipeline).
+
+## Pitfalls & Rules
+
+Before finalizing scenes, consult:
+
+| Reference | When to use |
+|-----------|-------------|
+| `references/animation-pitfalls.md` | Always — 14 rules from real failures |
+| `references/audio-design-rules.md` | When planning audio — SFX+BGM dual-track |
+
+### Quick checks
+- Layer positioning: parent must be `position: relative` if children are `absolute`
+- Cross-fade: overlap transitions (don't gap)
+- Font loading: wrap DOM measurement in `document.fonts.ready.then()`
+- Never use CSS silhouettes for product images — find real assets
