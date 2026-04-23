@@ -1,5 +1,8 @@
 {
   "enabledPlugins": {
-    "forge@roxabi-forge": true
+    "forge@roxabi-forge": true,
+    "brand-voice@knowledge-work-plugins": true,
+    "marketing@knowledge-work-plugins": true,
+    "product-management@knowledge-work-plugins": true
   }
 }
