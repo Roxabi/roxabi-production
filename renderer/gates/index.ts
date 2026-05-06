@@ -51,6 +51,7 @@ export async function runValidate(
   })
   try {
     const page = await browser.newPage()
+    page.setDefaultTimeout(timeout)
     await page.setViewport({ width, height, deviceScaleFactor: 1 })
     await page.goto(
       `${serverUrl}?composition=${encodeURIComponent(id)}&mode=render`,
@@ -88,6 +89,7 @@ export async function runInspect(
   })
   try {
     const page = await browser.newPage()
+    page.setDefaultTimeout(timeout)
     await page.setViewport({ width, height, deviceScaleFactor: 1 })
     await page.goto(
       `${serverUrl}?composition=${encodeURIComponent(id)}&mode=render`,
