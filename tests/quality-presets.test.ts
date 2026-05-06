@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { QUALITY_PRESETS, DEFAULT_FPS, DEFAULT_CODEC, DEFAULT_FORMAT } from '../renderer/config'
+import { QUALITY_PRESETS, DEFAULT_FPS, DEFAULT_CODEC, codecFromFormat } from '../renderer/config'
 
 describe('QUALITY_PRESETS', () => {
   it('all three presets are defined', () => {
@@ -38,31 +38,25 @@ describe('defaults', () => {
     expect(DEFAULT_CODEC).toBe('h264')
   })
 
-  it('DEFAULT_FORMAT is mp4', () => {
-    expect(DEFAULT_FORMAT).toBe('mp4')
-  })
-
   it('standard preset CRF matches render default', () => {
     expect(QUALITY_PRESETS.standard.crf).toBe(18)
   })
 })
 
-describe('format→codec alias', () => {
+describe('codecFromFormat', () => {
   it('mp4 maps to h264', () => {
-    const codecFromFormat = (fmt: string) =>
-      fmt === 'webm' ? 'vp9' : fmt === 'mp4' ? 'h264' : undefined
     expect(codecFromFormat('mp4')).toBe('h264')
   })
 
   it('webm maps to vp9', () => {
-    const codecFromFormat = (fmt: string) =>
-      fmt === 'webm' ? 'vp9' : fmt === 'mp4' ? 'h264' : undefined
     expect(codecFromFormat('webm')).toBe('vp9')
   })
 
   it('unknown format maps to undefined', () => {
-    const codecFromFormat = (fmt: string) =>
-      fmt === 'webm' ? 'vp9' : fmt === 'mp4' ? 'h264' : undefined
     expect(codecFromFormat('avi')).toBeUndefined()
+  })
+
+  it('undefined maps to undefined', () => {
+    expect(codecFromFormat(undefined)).toBeUndefined()
   })
 })

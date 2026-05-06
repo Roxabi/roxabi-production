@@ -109,7 +109,7 @@ if (subcommand) {
 // ---------------------------------------------------------------------------
 
 import { render } from './render'
-import { QUALITY_PRESETS } from './config'
+import { QUALITY_PRESETS, codecFromFormat } from './config'
 import type { BgmTrack, SfxCue } from './config'
 import { findProductionDir } from '../config/paths'
 
@@ -136,16 +136,7 @@ if (SUBCOMMANDS.includes(compositionId as Subcommand)) {
   process.exit(1)
 }
 
-// Default output: <production-dir>/out/<id>.mp4 if production found, else ./out/<id>.mp4
 const productionDir = findProductionDir(compositionId)
-const defaultOutput = productionDir
-  ? path.join(productionDir, 'out', `${compositionId}.mp4`)
-  : `out/${compositionId}.mp4`
-
-const outputIndex = args.findIndex(a => a.startsWith('--output='))
-const outputPath = outputIndex >= 0
-  ? args[outputIndex].split('=')[1]
-  : (args[1]?.startsWith('--') ? defaultOutput : (args[1] || defaultOutput))
 
 function flag(name: string): string | undefined {
   return args.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3)
@@ -183,7 +174,15 @@ const preset = quality ? QUALITY_PRESETS[quality] : undefined
 
 // --format as codec alias: mp4→h264, webm→vp9
 const format = flag('format')
-const codecFromFormat = format === 'webm' ? 'vp9' : format === 'mp4' ? 'h264' : undefined
+const outputExt = format === 'webm' ? 'webm' : 'mp4'
+const defaultOutput = productionDir
+  ? path.join(productionDir, 'out', `${compositionId}.${outputExt}`)
+  : `out/${compositionId}.${outputExt}`
+
+const outputIndex = args.findIndex(a => a.startsWith('--output='))
+const outputPath = outputIndex >= 0
+  ? args[outputIndex].split('=')[1]
+  : (args[1]?.startsWith('--') ? defaultOutput : (args[1] || defaultOutput))
 
 // --strict
 const strict = args.includes('--strict')
@@ -230,7 +229,7 @@ render({
   fps:    flag('fps')    ? parseInt(flag('fps')!)    : undefined,
   width:  flag('width')  ? parseInt(flag('width')!)  : undefined,
   height: flag('height') ? parseInt(flag('height')!) : undefined,
-  codec:  (flag('codec') ?? codecFromFormat) as 'h264' | 'prores' | 'vp9' | undefined,
+  codec:  (flag('codec') ?? codecFromFormat(format)) as 'h264' | 'prores' | 'vp9' | undefined,
   strict,
 }).catch(err => {
   console.error('Render failed:', err)
