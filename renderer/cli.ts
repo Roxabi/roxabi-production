@@ -15,6 +15,7 @@
  */
 
 import { render } from './render'
+import { QUALITY_PRESETS } from './config'
 import type { BgmTrack, SfxCue } from './config'
 
 const args = process.argv.slice(2)
@@ -64,17 +65,34 @@ function parseSfx(raw: string[]): SfxCue[] {
 
 const sfxRaw = args.filter(a => a.startsWith('--sfx='))
 
+// --quality preset (overrides --crf if both given)
+const quality = flag('quality') as 'draft' | 'standard' | 'high' | undefined
+const preset = quality ? QUALITY_PRESETS[quality] : undefined
+
+// --format as codec alias: mp4→h264, webm→vp9
+const format = flag('format')
+const codecFromFormat = format === 'webm' ? 'vp9' : format === 'mp4' ? 'h264' : undefined
+
+// --strict
+const strict = args.includes('--strict')
+
+// --docker: stub only
+if (args.includes('--docker')) {
+  console.warn('--docker: not yet implemented, rendering locally')
+}
+
 render({
   compositionId,
   outputPath,
   audioPath: flag('audio'),
   bgm: parseBgm(flag('bgm')),
   sfx: sfxRaw.length ? parseSfx(sfxRaw) : undefined,
-  crf:    flag('crf')    ? parseInt(flag('crf')!)    : undefined,
+  crf:    preset?.crf ?? (flag('crf') ? parseInt(flag('crf')!) : undefined),
   fps:    flag('fps')    ? parseInt(flag('fps')!)    : undefined,
   width:  flag('width')  ? parseInt(flag('width')!)  : undefined,
   height: flag('height') ? parseInt(flag('height')!) : undefined,
-  codec:  flag('codec')  as 'h264' | 'prores' | 'vp9' | undefined,
+  codec:  (flag('codec') ?? codecFromFormat) as 'h264' | 'prores' | 'vp9' | undefined,
+  strict,
 }).catch(err => {
   console.error('Render failed:', err)
   process.exit(1)
