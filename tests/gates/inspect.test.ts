@@ -16,9 +16,9 @@ import type { Finding } from '../../renderer/gates/determinism'
 
 type EvalFn<T> = (...args: unknown[]) => T | Promise<T>
 
-function makeMockPage(evaluateResult: unknown): { evaluate: (...args: unknown[]) => Promise<unknown> } {
+function makeMockPage(evaluateResult: unknown): { evaluate: (fn: EvalFn<unknown>, ...passedArgs: unknown[]) => Promise<unknown> } {
   return {
-    evaluate: async (fn: EvalFn<unknown>, ...passedArgs: unknown[]) => {
+    evaluate: async (_fn: EvalFn<unknown>, ..._passedArgs: unknown[]) => {
       // The fn received by checkOverflow is the inline function that queries the DOM.
       // Instead of executing it (which would need a real browser), we return the
       // predetermined result directly.
