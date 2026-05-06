@@ -17,17 +17,21 @@ core/          → Animation primitives (interpolate, spring, useCurrentFrame, S
 lib/           → Utilities (cInterpolate, sprng helpers)
 kits/          → 14 component kits (text, backgrounds, cinema, motion, UI, dataviz…)
 renderer/      → Puppeteer + FFmpeg render pipeline (CLI)
-showcase/      → Production compositions (LyraLaunchTrailer, ShowcaseVideo)
 player/        → Browser preview (Vite dev server)
-out/           → Rendered MP4 outputs
+showcase/      → In-repo demo composition (engine-local)
+config/        → Production discovery + path helpers
+plugins/       → Claude Code plugin (skills for compose/produce/render…)
 ```
+
+Productions (your videos) live **outside the repo** under
+`~/.roxabi/production/<projet>-video/` and are auto-discovered by Vite.
 
 ```mermaid
 flowchart LR
-  A[React compositions<br>showcase/] --> B[Vite dev server<br>localhost:3001]
+  A[~/.roxabi/production/*<br>+ showcase/<br>roxabi.config.ts] --> B[Vite dev server<br>localhost:3002]
   B --> C[Puppeteer<br>frame capture]
   C --> D[FFmpeg<br>encode]
-  D --> E[out/*.mp4]
+  D --> E[<production>/out/*.mp4]
 ```
 
 ## Kits
@@ -52,27 +56,30 @@ flowchart LR
 ## Quick Start
 
 ```bash
-npm install
+bun install
 
 # Preview in browser (hot reload)
-npm run dev
-# → http://localhost:3001?composition=LyraLaunchTrailer
+bun run dev
+# → http://localhost:3002?composition=showcase
 
-# Render to MP4
-npm run render LyraLaunchTrailer
-# → out/LyraLaunchTrailer.mp4
+# Render to MP4 (default output → <production-dir>/out/<id>.mp4)
+bun run render showcase
 
 # Render with narration audio
-npm run render LyraLaunchTrailer out/lyra-trailer.mp4 --audio=path/to/narration.mp3
+bun run render showcase --audio=path/to/narration.wav
 
-# Type check
-npm run typecheck
+# Pre-render gates (determinism, contrast, overflow)
+bun run render showcase --strict
+
+# Type check + tests
+bun run typecheck
+bun run test
 ```
 
 ## Renderer
 
 The render pipeline requires:
-- A running Vite dev server on `localhost:3001`
+- A running Vite dev server on `localhost:3002` (override via `ROXVID_PORT`)
 - `puppeteer` (installed as devDependency)
 - `ffmpeg` available in `$PATH`
 
@@ -80,27 +87,39 @@ The renderer navigates to `/?composition=<id>&mode=render`, reads `__ROXVID_DURA
 
 ```bash
 # CLI usage
-npx tsx renderer/cli.ts <CompositionId> [output.mp4] [--audio=path]
+bun run render <CompositionId> [output.mp4] [--audio=path] [--strict]
 ```
 
-## Showcase
+## Productions
 
-| Composition | Description |
-|-------------|-------------|
-| `LyraLaunchTrailer` | Lyra launch trailer — Forge palette, cinematic FX |
-| `ShowcaseVideo` | General showcase reel |
+A production is a directory containing one or more compositions plus their
+content/assets. The engine discovers them at boot via `roxabi.config.ts` files.
 
-## Legacy
+**Default location:** `~/.roxabi/production/<projet>-video/` — override with
+`ROXABI_PRODUCTION_DIR=/some/other/path`.
 
-`lyra-product-video/` contains the original Remotion-based birth story video (17 scenes, French narration, ~5 min). It is standalone and not part of the new engine.
+```
+~/.roxabi/production/<projet>-video/
+├── compositions/        # *.tsx (use @core, @kits, @lib, @themes aliases)
+├── content/             # vo.md, soundtrack.md, scripts
+├── assets/              # narration.wav, marks/, raw audio
+├── out/                 # rendered mp4 (gitignored locally)
+└── roxabi.config.ts     # registers compositions:
+                         #   import { MyComp } from './compositions/MyComp'
+                         #   export default [{ id, component, durationInFrames, fps, width, height }]
+```
+
+The `showcase/` directory in this repo is a built-in demo following the same
+convention — see [`showcase/README.md`](./showcase/README.md).
 
 ## Stack
 
-- React 19 + TypeScript 5.7
-- Vite 6 (dev server + build)
+- React 19 + TypeScript 5.7+
+- Vite 8 (dev server + build)
 - Puppeteer 24 (headless frame capture)
 - FFmpeg (video encoding)
-- Vitest 3 (unit tests)
+- Vitest 4 (unit tests)
+- Bun (runtime + package manager)
 
 ## License
 

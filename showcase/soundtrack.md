@@ -11,7 +11,7 @@ No BGM track found in `assets/` or `assets/audio/`. Required for product launch 
 **Recommended:**
 - Track: `bgm-tech.mp3` (minimal synth + piano) per audio-design-rules.md
 - Duration: 56s minimum (loop if shorter)
-- Alternative: Check `lyra-product-video/` for existing pitch tracks that could serve as BGM
+- Alternative: Check `~/.roxabi/production/lyra-product/` for existing pitch tracks that could serve as BGM
 
 **When obtained, apply:**
 ```
