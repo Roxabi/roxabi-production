@@ -35,7 +35,11 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
     const f = tmp('const t = Date.now()\n')
     files.push(f)
     const findings = scanAstFile(f)
-    expect(findings.find(fi => fi.rule === 'R2')).toBeDefined()
+    const hit = findings.find(fi => fi.rule === 'R2')
+    expect(hit).toBeDefined()
+    expect(hit?.severity).toBe('error')
+    expect(hit?.gate).toBe('determinism')
+    expect(hit?.line).toBe(1)
   })
 
   // R3
@@ -43,7 +47,11 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
     const f = tmp('const p = performance.now()\n')
     files.push(f)
     const findings = scanAstFile(f)
-    expect(findings.find(fi => fi.rule === 'R3')).toBeDefined()
+    const hit = findings.find(fi => fi.rule === 'R3')
+    expect(hit).toBeDefined()
+    expect(hit?.severity).toBe('error')
+    expect(hit?.gate).toBe('determinism')
+    expect(hit?.line).toBe(1)
   })
 
   // R4
@@ -51,7 +59,11 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
     const f = tmp('const el = document.querySelector("video"); el.play()\n')
     files.push(f)
     const findings = scanAstFile(f)
-    expect(findings.find(fi => fi.rule === 'R4')).toBeDefined()
+    const hit = findings.find(fi => fi.rule === 'R4')
+    expect(hit).toBeDefined()
+    expect(hit?.severity).toBe('error')
+    expect(hit?.gate).toBe('determinism')
+    expect(hit?.line).toBe(1)
   })
 
   // R4 must not flag unrelated .play on strings etc. (sanity)
@@ -94,10 +106,10 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
     expect(r3?.line).toBe(5)
   })
 
-  // R5 heuristic: await inside top-level component
+  // R5 heuristic: await inside top-level async component
   it('warns on await inside top-level component body (R5 heuristic)', () => {
     const f = tmp([
-      'const MyScene: React.FC = () => {',
+      'const MyScene: React.FC = async () => {',
       '  const data = await fetch("/api")',
       '  return null',
       '}',
