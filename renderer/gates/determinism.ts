@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { listProductionConfigs } from '../../config/paths'
+import { DETERMINISM_RULES, ruleMessage } from '../../core/determinism-rules'
 
 export interface Finding {
   gate: 'determinism' | 'contrast' | 'overflow'
@@ -10,35 +11,20 @@ export interface Finding {
   message: string
 }
 
-const BANNED: { pattern: RegExp; message: string }[] = [
-  {
-    pattern: /\bMath\.random\s*\(\)/g,
-    message: "Math.random() is non-deterministic — use random() from core/random.ts",
-  },
-  {
-    pattern: /\bDate\.now\s*\(\)/g,
-    message: "Date.now() is non-deterministic — derive time from frame / fps",
-  },
-  {
-    pattern: /\bperformance\.now\s*\(\)/g,
-    message: "performance.now() is non-deterministic — derive time from frame / fps",
-  },
-]
-
 export function scanFile(filePath: string): Finding[] {
   const content = fs.readFileSync(filePath, 'utf8')
   const lines = content.split('\n')
   const findings: Finding[] = []
-  for (const { pattern, message } of BANNED) {
+  for (const rule of DETERMINISM_RULES) {
     for (let i = 0; i < lines.length; i++) {
-      pattern.lastIndex = 0
-      if (pattern.test(lines[i])) {
+      rule.pattern.lastIndex = 0
+      if (rule.pattern.test(lines[i])) {
         findings.push({
           gate: 'determinism',
-          severity: 'error',
+          severity: rule.severity,
           file: filePath,
           line: i + 1,
-          message,
+          message: ruleMessage(rule),
         })
       }
     }

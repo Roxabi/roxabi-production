@@ -4,6 +4,9 @@
  *
  * Usage:
  *   npx tsx renderer/cli.ts <CompositionId> [output.mp4] [flags]
+ *   npx tsx renderer/cli.ts lint     <CompositionId> [--json]
+ *   npx tsx renderer/cli.ts validate <CompositionId> [--json]
+ *   npx tsx renderer/cli.ts inspect  <CompositionId> [--json]
  *
  * Flags:
  *   --audio=path.wav                    single VO track
@@ -15,12 +18,85 @@
  */
 
 import * as path from 'path'
+import type { Finding } from './gates/determinism'
+
+const args = process.argv.slice(2)
+const jsonOutput = args.includes('--json')
+
+// ---------------------------------------------------------------------------
+// Subcommand detection: lint | validate | inspect must be FIRST positional arg
+// ---------------------------------------------------------------------------
+
+const SUBCOMMANDS = ['lint', 'validate', 'inspect'] as const
+type Subcommand = typeof SUBCOMMANDS[number]
+
+const firstPositional = args.find(a => !a.startsWith('--'))
+const subcommand = SUBCOMMANDS.includes(firstPositional as Subcommand)
+  ? firstPositional as Subcommand
+  : undefined
+
+// ---------------------------------------------------------------------------
+// Gate subcommand handler
+// ---------------------------------------------------------------------------
+
+function printFindings(findings: Finding[]): void {
+  if (findings.length === 0) {
+    console.log('No findings.')
+    return
+  }
+  const errors = findings.filter(f => f.severity === 'error')
+  const warnings = findings.filter(f => f.severity === 'warning')
+  for (const f of findings) {
+    const icon = f.severity === 'error' ? 'x' : '!'
+    const loc = f.line > 0 ? `${f.file}:${f.line}` : f.file
+    console.log(`  ${icon} [${f.gate}] ${loc} — ${f.message}`)
+  }
+  console.log(`\n${errors.length} error(s), ${warnings.length} warning(s).`)
+}
+
+if (subcommand) {
+  // Consume the subcommand keyword — remaining positionals treated normally
+  const remainingArgs = args.filter(a => a !== subcommand && !a.startsWith('--'))
+  const compositionId = remainingArgs[0]
+
+  if (!compositionId) {
+    console.error(`Usage: npx tsx renderer/cli.ts ${subcommand} <CompositionId> [--json]`)
+    process.exit(1)
+  }
+
+  const port = parseInt(process.env.ROXVID_PORT || '3002', 10)
+  const serverUrl = `http://localhost:${port}`
+  const root = process.cwd()
+
+  const { runLint, runValidate, runInspect } = await import('./gates/index.js')
+
+  let result: { findings: Finding[]; exitCode: number }
+
+  if (subcommand === 'lint') {
+    result = await runLint(compositionId, root)
+  } else if (subcommand === 'validate') {
+    result = await runValidate(compositionId, serverUrl)
+  } else {
+    result = await runInspect(compositionId, serverUrl)
+  }
+
+  if (jsonOutput) {
+    console.log(JSON.stringify({ gate: subcommand, compositionId, ...result }, null, 2))
+  } else {
+    printFindings(result.findings)
+  }
+
+  process.exit(result.exitCode)
+}
+
+// ---------------------------------------------------------------------------
+// Existing render flow (unchanged)
+// ---------------------------------------------------------------------------
+
 import { render } from './render'
 import { QUALITY_PRESETS } from './config'
 import type { BgmTrack, SfxCue } from './config'
 import { findProductionDir } from '../config/paths'
-
-const args = process.argv.slice(2)
 
 // Support both positional and flag-based composition ID
 let compositionId = args.find(a => a.startsWith('--composition='))?.split('=')[1]
