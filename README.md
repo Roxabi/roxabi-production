@@ -123,4 +123,4 @@ convention — see [`showcase/README.md`](./showcase/README.md).
 
 ## License
 
-Private — all rights reserved.
+MIT — see [LICENSE](./LICENSE).
