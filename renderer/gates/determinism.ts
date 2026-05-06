@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { listProductionConfigs } from '../../config/paths'
 
 export interface Finding {
   gate: 'determinism' | 'contrast' | 'overflow'
@@ -46,12 +47,17 @@ export function scanFile(filePath: string): Finding[] {
 }
 
 export function scanComposition(root: string): Finding[] {
-  const dirs = [path.join(root, 'showcase'), path.join(root, 'kits')]
+  const dirs: string[] = [path.join(root, 'kits')]
+  for (const entry of listProductionConfigs(root)) {
+    dirs.push(entry.dir)
+  }
+
   const findings: Finding[] = []
   for (const dir of dirs) {
     if (!fs.existsSync(dir)) continue
     const walk = (d: string): void => {
       for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
+        if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue
         const full = path.join(d, entry.name)
         if (entry.isDirectory()) {
           walk(full)

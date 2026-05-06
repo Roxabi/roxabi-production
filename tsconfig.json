@@ -21,8 +21,9 @@
       "@lib/*": ["./lib/*"]
     },
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "types": ["node"]
   },
-  "include": ["core", "kits", "themes", "lib", "player", "renderer", "showcase", "dev", "tests"],
+  "include": ["core", "kits", "themes", "lib", "player", "renderer", "config", "showcase", "dev", "tests"],
   "exclude": ["node_modules", "dist", "out"]
 }
