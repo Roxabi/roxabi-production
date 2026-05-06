@@ -55,8 +55,10 @@ function printFindings(findings: Finding[]): void {
 }
 
 if (subcommand) {
-  // Consume the subcommand keyword — remaining positionals treated normally
-  const remainingArgs = args.filter(a => a !== subcommand && !a.startsWith('--'))
+  // Consume the subcommand keyword by index — avoids collision if a composition
+  // happens to share the same name as a subcommand elsewhere in the args list.
+  const subCmdIdx = args.findIndex(a => a === subcommand)
+  const remainingArgs = args.filter((_, i) => i !== subCmdIdx && !args[i].startsWith('--'))
   const compositionId = remainingArgs[0]
 
   if (!compositionId) {
@@ -106,6 +108,18 @@ if (!compositionId) {
 
 if (!compositionId) {
   console.error('Usage: npx tsx renderer/cli.ts <CompositionId> [output.mp4] [--audio=...] [--bgm=...] [--sfx=...]')
+  process.exit(1)
+}
+
+// Guard: reserved subcommand keywords cannot be used as composition IDs in the render path.
+// (They would have been dispatched above — reaching here means the user typed something like
+// `cli.ts lint` without a following composition ID, which the subcommand handler already
+// catches.  This guard covers the edge case of --composition=lint or arg-order ambiguity.)
+if (SUBCOMMANDS.includes(compositionId as Subcommand)) {
+  console.error(
+    `Composition name '${compositionId}' collides with reserved subcommand keyword. ` +
+    `Rename the composition or use --composition= with a different name.`,
+  )
   process.exit(1)
 }
 
