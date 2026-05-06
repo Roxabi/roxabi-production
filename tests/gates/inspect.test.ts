@@ -1,109 +1,120 @@
+// @vitest-environment jsdom
 /**
  * Gate 3 — Layout overflow (inspect).
  *
- * These tests exercise the overflow-detection logic in isolation using a
- * synthetic DOM via jsdom (no Puppeteer / no dev server required).
- * The checkOverflow function accepts a Puppeteer Page object — we provide
- * a minimal mock that replays DOM evaluation results.
+ * Tests call `buildOverflowViolations` directly under jsdom — no Puppeteer,
+ * no dev server. Covers the DOM walk, 2px tolerance, and the overflow:hidden
+ * ancestor clipping heuristic.
+ *
+ * jsdom's getBoundingClientRect returns zeros for unrendered elements, so we
+ * override it per-element to simulate layout positions.
  */
-import { describe, it, expect } from 'vitest'
-import type { Finding } from '../../renderer/gates/determinism'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { buildOverflowViolations } from '../../renderer/gates/inspect'
 
 // ---------------------------------------------------------------------------
-// Minimal Puppeteer Page mock
-// We only need page.evaluate() to return a fixed result.
+// Helper: build an element with a mocked bounding rect
 // ---------------------------------------------------------------------------
 
-type EvalFn<T> = (...args: unknown[]) => T | Promise<T>
+type Rect = { top: number; left: number; right: number; bottom: number }
 
-function makeMockPage(evaluateResult: unknown): { evaluate: (fn: EvalFn<unknown>, ...passedArgs: unknown[]) => Promise<unknown> } {
-  return {
-    evaluate: async (_fn: EvalFn<unknown>, ..._passedArgs: unknown[]) => {
-      // The fn received by checkOverflow is the inline function that queries the DOM.
-      // Instead of executing it (which would need a real browser), we return the
-      // predetermined result directly.
-      return evaluateResult
-    },
-  }
+function makeEl(
+  tag: string,
+  rect: Rect,
+  opts: { id?: string; className?: string } = {},
+): HTMLElement {
+  const e = document.createElement(tag)
+  if (opts.id) e.id = opts.id
+  if (opts.className) e.className = opts.className
+  e.getBoundingClientRect = () => ({
+    ...rect,
+    width: rect.right - rect.left,
+    height: rect.bottom - rect.top,
+    x: rect.left,
+    y: rect.top,
+    toJSON: () => ({}),
+  })
+  return e
 }
 
-// Import the check function — it only calls page.evaluate() once.
-import { checkOverflow } from '../../renderer/gates/inspect'
+// ---------------------------------------------------------------------------
+// Per-test: use a fresh render-root appended to body, clean up after each test
+// ---------------------------------------------------------------------------
 
-describe('inspect gate — checkOverflow', () => {
-  it('returns empty findings when all elements are in-viewport', async () => {
-    // Simulate: every getBoundingClientRect fits inside 1920x1080
-    const page = makeMockPage([]) as any
-    const findings: Finding[] = await checkOverflow(page, 1920, 1080)
-    expect(findings).toHaveLength(0)
+let renderRoot: HTMLDivElement
+
+beforeEach(() => {
+  renderRoot = document.createElement('div')
+  renderRoot.id = 'render-root'
+  document.body.appendChild(renderRoot)
+})
+
+afterEach(() => {
+  document.body.removeChild(renderRoot)
+})
+
+describe('inspect gate — buildOverflowViolations', () => {
+  it('returns empty array when element is fully inside viewport', () => {
+    const child = makeEl('div', { top: 0, left: 0, right: 100, bottom: 100 }, { id: 'inner' })
+    renderRoot.appendChild(child)
+
+    const results = buildOverflowViolations(document, 1920, 1080)
+    expect(results.find(r => r.id === 'inner')).toBeUndefined()
   })
 
-  it('flags an element with right > viewport width', async () => {
-    // Simulate: a div at left=2000, right=2200 (overflows 1920-wide viewport)
-    const overflowResult = [
-      {
-        tag: 'div',
-        id: 'offscreen',
-        className: '',
-        rect: { top: 100, left: 2000, right: 2200, bottom: 200 },
-      },
-    ]
-    const page = makeMockPage(overflowResult) as any
-    const findings: Finding[] = await checkOverflow(page, 1920, 1080)
-    expect(findings).toHaveLength(1)
-    expect(findings[0].gate).toBe('overflow')
-    expect(findings[0].severity).toBe('error')
-    expect(findings[0].message).toContain('right=2200')
-    expect(findings[0].message).toContain('1920')
+  it('flags an element with right > viewport width', () => {
+    const child = makeEl('div', { top: 100, left: 2000, right: 2200, bottom: 200 }, { id: 'offscreen' })
+    renderRoot.appendChild(child)
+
+    const results = buildOverflowViolations(document, 1920, 1080)
+    const hit = results.find(r => r.id === 'offscreen')
+
+    expect(hit).toBeDefined()
+    expect(hit!.tag).toBe('div')
+    expect(hit!.rect.right).toBe(2200)
+    expect(hit!.rect.left).toBe(2000)
   })
 
-  it('flags an element with bottom > viewport height', async () => {
-    const overflowResult = [
-      {
-        tag: 'p',
-        id: '',
-        className: 'footer',
-        rect: { top: 1090, left: 0, right: 200, bottom: 1200 },
-      },
-    ]
-    const page = makeMockPage(overflowResult) as any
-    const findings: Finding[] = await checkOverflow(page, 1920, 1080)
-    expect(findings).toHaveLength(1)
-    expect(findings[0].message).toContain('bottom=1200')
+  it('flags an element with bottom > viewport height', () => {
+    const child = makeEl('p', { top: 1090, left: 0, right: 200, bottom: 1200 }, { id: 'below' })
+    renderRoot.appendChild(child)
+
+    const results = buildOverflowViolations(document, 1920, 1080)
+    const hit = results.find(r => r.id === 'below')
+
+    expect(hit).toBeDefined()
+    expect(hit!.rect.bottom).toBe(1200)
   })
 
-  it('flags an element with left < 0', async () => {
-    const overflowResult = [
-      {
-        tag: 'span',
-        id: '',
-        className: '',
-        rect: { top: 100, left: -50, right: 200, bottom: 200 },
-      },
-    ]
-    const page = makeMockPage(overflowResult) as any
-    const findings: Finding[] = await checkOverflow(page, 1920, 1080)
-    expect(findings).toHaveLength(1)
-    expect(findings[0].message).toContain('left=-50')
+  it('flags an element with left < 0', () => {
+    const child = makeEl('span', { top: 100, left: -50, right: 200, bottom: 200 }, { id: 'leftover' })
+    renderRoot.appendChild(child)
+
+    const results = buildOverflowViolations(document, 1920, 1080)
+    const hit = results.find(r => r.id === 'leftover')
+
+    expect(hit).toBeDefined()
+    expect(hit!.rect.left).toBe(-50)
   })
 
-  it('handles multiple overflow violations', async () => {
-    const overflowResult = [
-      {
-        tag: 'div',
-        id: 'a',
-        className: '',
-        rect: { top: 100, left: 2000, right: 2200, bottom: 200 },
-      },
-      {
-        tag: 'div',
-        id: 'b',
-        className: '',
-        rect: { top: 1200, left: 0, right: 100, bottom: 1300 },
-      },
-    ]
-    const page = makeMockPage(overflowResult) as any
-    const findings: Finding[] = await checkOverflow(page, 1920, 1080)
-    expect(findings).toHaveLength(2)
+  it('respects 2px sub-pixel tolerance (exactly at boundary is not flagged)', () => {
+    // right === vw + 2 — NOT flagged (requires > vw+2)
+    const child = makeEl('div', { top: 0, left: 0, right: 1922, bottom: 100 }, { id: 'tolerance' })
+    renderRoot.appendChild(child)
+
+    const results = buildOverflowViolations(document, 1920, 1080)
+    expect(results.find(r => r.id === 'tolerance')).toBeUndefined()
+  })
+
+  it('skips elements clipped by overflow:hidden ancestor', () => {
+    const wrapper = document.createElement('div')
+    wrapper.style.overflow = 'hidden'
+
+    const child = makeEl('div', { top: 0, left: 2000, right: 2200, bottom: 100 }, { id: 'clipped' })
+    wrapper.appendChild(child)
+    renderRoot.appendChild(wrapper)
+
+    const results = buildOverflowViolations(document, 1920, 1080)
+    expect(results.find(r => r.id === 'clipped')).toBeUndefined()
   })
 })

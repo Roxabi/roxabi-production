@@ -1,36 +1,96 @@
+// @vitest-environment jsdom
 /**
  * Gate 2 — Contrast / a11y (validate).
  *
- * Tests exercise checkContrast in isolation via a mock Puppeteer Page.
- * The contrast-ratio math is the main thing to validate; no Puppeteer / no
- * dev server required.
+ * Tests are split into two layers:
  *
- * NOTE: The transparent-background filter (`rgba(0, 0, 0, 0)` / `transparent`)
- * runs inside the browser-side evaluate() callback and is not exercised here.
- * Those code paths are covered by the existing integration gate in gates.test.ts.
+ * 1. `collectColorPairs` under jsdom — covers the transparent-background filter,
+ *    DOM walk, and pair extraction (the logic previously untested by mock).
+ *
+ * 2. `checkContrast` via mock page — covers the contrast-ratio math and
+ *    Finding construction (no Puppeteer / no dev server required).
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import type { Finding } from '../../renderer/gates/determinism'
-import { checkContrast } from '../../renderer/gates/validate'
+import { collectColorPairs, checkContrast } from '../../renderer/gates/validate'
 
 // ---------------------------------------------------------------------------
-// Mock Page helper.
-// The browser-side evaluate() callback filters transparent backgrounds BEFORE
-// returning pairs.  Our mock simulates what the browser already filtered:
-// only opaque pairs are returned.
+// Layer 1: collectColorPairs under jsdom (real DOM, real getComputedStyle)
 // ---------------------------------------------------------------------------
 
-interface ColorPair { selector: string; fg: string; bg: string }
+let container: HTMLDivElement
 
-function makeMockPage(pairs: ColorPair[]): { evaluate: (...args: unknown[]) => Promise<unknown> } {
-  return {
-    evaluate: async () => pairs,
-  }
+beforeEach(() => {
+  container = document.createElement('div')
+  document.body.appendChild(container)
+})
+
+afterEach(() => {
+  document.body.removeChild(container)
+})
+
+describe('validate gate — collectColorPairs (jsdom)', () => {
+  it('returns a pair for an element with an opaque background', () => {
+    const p = document.createElement('p')
+    p.style.color = 'rgb(0, 0, 0)'
+    p.style.backgroundColor = 'rgb(255, 255, 255)'
+    p.textContent = 'hello'
+    container.appendChild(p)
+
+    const pairs = collectColorPairs(document)
+    // jsdom returns computed styles, so exact match depends on browser normalisation;
+    // we just verify the pair was collected (non-transparent bg was kept)
+    expect(pairs.some(pair => pair.selector.startsWith('p'))).toBe(true)
+  })
+
+  it('skips elements with rgba(0, 0, 0, 0) background', () => {
+    const span = document.createElement('span')
+    span.id = 'transparent-span'
+    span.style.color = 'rgb(0, 0, 0)'
+    span.style.backgroundColor = 'rgba(0, 0, 0, 0)'
+    span.textContent = 'ghost'
+    container.appendChild(span)
+
+    const pairs = collectColorPairs(document)
+    expect(pairs.find(p => p.selector === 'span#transparent-span')).toBeUndefined()
+  })
+
+  it('skips elements with "transparent" background keyword', () => {
+    const div = document.createElement('div')
+    div.id = 'transparent-div'
+    div.style.backgroundColor = 'transparent'
+    div.style.color = 'rgb(0,0,0)'
+    container.appendChild(div)
+
+    const pairs = collectColorPairs(document)
+    expect(pairs.find(p => p.selector === 'div#transparent-div')).toBeUndefined()
+  })
+
+  it('includes element id in selector', () => {
+    const h1 = document.createElement('h1')
+    h1.id = 'title'
+    h1.style.color = 'rgb(255, 255, 255)'
+    h1.style.backgroundColor = 'rgb(0, 0, 0)'
+    h1.textContent = 'Title'
+    container.appendChild(h1)
+
+    const pairs = collectColorPairs(document)
+    expect(pairs.find(p => p.selector === 'h1#title')).toBeDefined()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Layer 2: checkContrast via mock page (contrast-ratio math + Finding shape)
+// ---------------------------------------------------------------------------
+
+interface ColorPairMock { selector: string; fg: string; bg: string }
+
+function makeMockPage(pairs: ColorPairMock[]): { evaluate: (...args: unknown[]) => Promise<unknown> } {
+  return { evaluate: async () => pairs }
 }
 
-describe('validate gate — checkContrast', () => {
-  it('returns empty findings when all text has sufficient contrast', async () => {
-    // Black text on white background → ratio ≈ 21:1
+describe('validate gate — checkContrast (contrast math)', () => {
+  it('returns empty findings for high-contrast text (black on white, ratio ≈ 21)', async () => {
     const page = makeMockPage([
       { selector: 'p', fg: 'rgb(0, 0, 0)', bg: 'rgb(255, 255, 255)' },
     ]) as any
@@ -38,8 +98,8 @@ describe('validate gate — checkContrast', () => {
     expect(findings).toHaveLength(0)
   })
 
-  it('flags black text on dark background (low contrast)', async () => {
-    // rgb(20,20,20) fg on rgb(30,30,30) bg → ratio ≈ 1.07 — well below 4.5
+  it('flags low-contrast text with severity error', async () => {
+    // rgb(20,20,20) on rgb(30,30,30) → ratio ≈ 1.07
     const page = makeMockPage([
       { selector: 'div', fg: 'rgb(20, 20, 20)', bg: 'rgb(30, 30, 30)' },
     ]) as any
@@ -50,8 +110,7 @@ describe('validate gate — checkContrast', () => {
     expect(findings[0].message).toContain('WCAG AA')
   })
 
-  it('flags white text on very light background', async () => {
-    // rgb(255,255,255) on rgb(230,230,230) → ratio ≈ 1.35
+  it('flags white on very light background (ratio ≈ 1.35)', async () => {
     const page = makeMockPage([
       { selector: 'h1', fg: 'rgb(255, 255, 255)', bg: 'rgb(230, 230, 230)' },
     ]) as any
@@ -59,13 +118,11 @@ describe('validate gate — checkContrast', () => {
     expect(findings).toHaveLength(1)
   })
 
-  it('skips elements with unparseable color strings', async () => {
-    // If a color string cannot be parsed by parseRgb, the pair is silently skipped
+  it('skips pairs with unparseable color strings', async () => {
     const page = makeMockPage([
       { selector: 'span', fg: 'not-a-color', bg: 'rgb(255, 255, 255)' },
     ]) as any
-    const findings: Finding[] = await checkContrast(page)
-    expect(findings).toHaveLength(0)
+    expect(await checkContrast(page)).toHaveLength(0)
   })
 
   it('flags multiple low-contrast elements', async () => {
@@ -73,20 +130,17 @@ describe('validate gate — checkContrast', () => {
       { selector: 'p#a', fg: 'rgb(20, 20, 20)', bg: 'rgb(30, 30, 30)' },
       { selector: 'p#b', fg: 'rgb(50, 50, 50)', bg: 'rgb(55, 55, 55)' },
     ]) as any
-    const findings: Finding[] = await checkContrast(page)
-    expect(findings).toHaveLength(2)
+    expect(await checkContrast(page)).toHaveLength(2)
   })
 
   it('passes amber text on black background (high contrast)', async () => {
-    // Amber #f59e0b on #000000 — high contrast, should not fail
     const page = makeMockPage([
       { selector: 'div', fg: 'rgb(245, 158, 11)', bg: 'rgb(0, 0, 0)' },
     ]) as any
-    const findings: Finding[] = await checkContrast(page)
-    expect(findings).toHaveLength(0)
+    expect(await checkContrast(page)).toHaveLength(0)
   })
 
-  it('contrast ratio is included in finding message', async () => {
+  it('includes contrast ratio in finding message', async () => {
     const page = makeMockPage([
       { selector: 'div#low', fg: 'rgb(20, 20, 20)', bg: 'rgb(30, 30, 30)' },
     ]) as any
