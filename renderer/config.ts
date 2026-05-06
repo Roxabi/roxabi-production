@@ -26,6 +26,10 @@ export interface RenderConfig {
   strict?: boolean
 }
 
+export const DEFAULT_FPS = 30
+export const DEFAULT_CODEC: 'h264' | 'prores' | 'vp9' = 'h264'
+export const DEFAULT_FORMAT: 'mp4' | 'webm' = 'mp4'
+
 export const QUALITY_PRESETS: Record<'draft' | 'standard' | 'high', { crf: number }> = {
   draft:    { crf: 28 },
   standard: { crf: 18 },

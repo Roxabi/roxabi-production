@@ -89,8 +89,20 @@ The renderer navigates to `/?composition=<id>&mode=render`, reads `__ROXVID_DURA
 
 ```bash
 # CLI usage
-bun run render <CompositionId> [output.mp4] [--audio=path] [--strict]
+bun run render <CompositionId> [output.mp4] [flags]
 ```
+
+| Flag | Values | Default | Effect |
+|---|---|---|---|
+| `--quality` | `draft\|standard\|high` | `standard` | FFmpeg CRF: draft=28, standard=18, high=14 |
+| `--fps` | `24\|30\|60` | `30` | Frame rate (Puppeteer capture + FFmpeg `-framerate`) |
+| `--format` | `mp4\|webm` | `mp4` | Container + codec: mp4→h264, webm→vp9 |
+| `--strict` | — | off | Run pre-flight gates; abort on any error |
+| `--docker` | — | off | *(stub)* Logs "not implemented", renders locally |
+| `--audio` | path | — | Single narration/VO track |
+| `--bgm` | path\[:vol=N\] | — | Background music with optional volume (0–1) |
+| `--sfx` | t=N:file=path\[:vol=N\] | — | Timecoded sound effect cue |
+| `--crf` | integer | 18 | Raw FFmpeg CRF (overridden by `--quality`) |
 
 ## Productions
 

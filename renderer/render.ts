@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer'
 import { spawnSync } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
-import { codecArgs, validateCompositionId, MAX_DURATION_FRAMES, type RenderConfig, type BgmTrack, type SfxCue } from './config'
+import { codecArgs, validateCompositionId, MAX_DURATION_FRAMES, DEFAULT_FPS, DEFAULT_CODEC, QUALITY_PRESETS, type RenderConfig, type BgmTrack, type SfxCue } from './config'
 
 // ---------------------------------------------------------------------------
 // Audio helpers
@@ -81,9 +81,9 @@ export async function render(config: RenderConfig) {
     outputPath,
     width = 1920,
     height = 1080,
-    fps = 30,
-    codec = 'h264',
-    crf = 18,
+    fps = DEFAULT_FPS,
+    codec = DEFAULT_CODEC,
+    crf = QUALITY_PRESETS.standard.crf,
     audioPath,
     bgm,
     sfx,
