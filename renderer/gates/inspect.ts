@@ -22,12 +22,26 @@ export async function checkOverflow(
 ): Promise<Finding[]> {
   const violations = await page.evaluate(
     (vw: number, vh: number): OverflowResult[] => {
+      const root = document.getElementById('render-root')
+
       const results: OverflowResult[] = []
       const els = document.querySelectorAll('*')
       for (const el of Array.from(els)) {
         const r = el.getBoundingClientRect()
         // Only flag significant overflow (>2px tolerance for sub-pixel rounding)
         if (r.right > vw + 2 || r.bottom > vh + 2 || r.left < -2 || r.top < -2) {
+          // Skip elements clipped by an ancestor (e.g. AbsoluteFill, slide-in animations)
+          let clipped = false
+          let ancestor = el.parentElement
+          while (ancestor && ancestor !== root) {
+            const s = getComputedStyle(ancestor)
+            if (
+              s.overflow === 'hidden' || s.overflow === 'clip' ||
+              s.overflowX === 'hidden' || s.overflowY === 'hidden'
+            ) { clipped = true; break }
+            ancestor = ancestor.parentElement
+          }
+          if (clipped) continue
           results.push({
             tag: el.tagName.toLowerCase(),
             id: (el as HTMLElement).id || '',
