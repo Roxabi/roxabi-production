@@ -34,7 +34,6 @@ const S01Title: React.FC = () => {
       <GradientBackground
         colors={['#080810', '#0f172a', '#1e1b4b']}
         animate
-        speed={0.3}
       />
 
       <AbsoluteFill
@@ -108,7 +107,7 @@ const S02Architecture: React.FC = () => {
 
   return (
     <AbsoluteFill style={{ background: BG }}>
-      <GradientBackground colors={['#080810', '#0c0c18']} animate speed={0.2} />
+      <GradientBackground colors={['#080810', '#0c0c18']} animate />
 
       {/* Pipeline flow */}
       <AbsoluteFill
