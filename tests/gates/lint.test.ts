@@ -3,6 +3,7 @@ import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import { scanAstFile, runLint } from '../../renderer/gates/lint'
+import { validateCompositionId } from '../../renderer/config'
 
 function tmp(content: string, ext = '.tsx'): string {
   const f = path.join(os.tmpdir(), `rox-lint-test-${process.hrtime.bigint()}${ext}`)
@@ -132,5 +133,19 @@ describe('lint gate — runLint (integration)', () => {
       console.error('Unexpected lint errors in showcase:', errors)
     }
     expect(result.exitCode).toBe(0)
+  })
+})
+
+describe('validateCompositionId — path-traversal guard', () => {
+  it('rejects path-traversal IDs', () => {
+    expect(() => validateCompositionId('../../etc/passwd')).toThrow()
+    expect(() => validateCompositionId('../foo')).toThrow()
+    expect(() => validateCompositionId('foo/bar')).toThrow()
+  })
+
+  it('accepts valid composition IDs', () => {
+    expect(() => validateCompositionId('showcase')).not.toThrow()
+    expect(() => validateCompositionId('lyra-launch-trailer')).not.toThrow()
+    expect(() => validateCompositionId('my_comp_01')).not.toThrow()
   })
 })

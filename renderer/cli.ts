@@ -19,6 +19,7 @@
 
 import * as path from 'path'
 import type { Finding } from './gates/determinism'
+import { validateCompositionId } from './config'
 
 const args = process.argv.slice(2)
 const jsonOutput = args.includes('--json')
@@ -63,6 +64,14 @@ if (subcommand) {
 
   if (!compositionId) {
     console.error(`Usage: npx tsx renderer/cli.ts ${subcommand} <CompositionId> [--json]`)
+    process.exit(1)
+  }
+
+  // Guard: reject path-traversal attempts (e.g. "../../etc/passwd")
+  try {
+    validateCompositionId(compositionId)
+  } catch {
+    console.error(`Invalid composition ID: "${compositionId}" — must match /^[a-zA-Z0-9_-]+$/`)
     process.exit(1)
   }
 
