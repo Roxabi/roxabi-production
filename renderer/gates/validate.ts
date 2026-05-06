@@ -22,28 +22,39 @@ function parseRgb(color: string): [number, number, number] | null {
   return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])]
 }
 
+export interface ColorPair { selector: string; fg: string; bg: string }
+
+/**
+ * Pure DOM function — walks candidate text elements, filters transparent
+ * backgrounds, and returns (selector, fg, bg) pairs for contrast analysis.
+ *
+ * Exported so tests can call it directly under jsdom without Puppeteer.
+ */
+export function collectColorPairs(root: ParentNode): ColorPair[] {
+  const results: ColorPair[] = []
+  const candidates = root.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, div, label')
+  for (const el of Array.from(candidates)) {
+    const style = getComputedStyle(el)
+    const bg = style.backgroundColor
+    // skip transparent backgrounds
+    if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') continue
+    const fg = style.color
+    if (!fg) continue
+    const tag = el.tagName.toLowerCase()
+    const id = (el as HTMLElement).id
+    results.push({ selector: `${tag}${id ? `#${id}` : ''}`, fg, bg })
+  }
+  return results
+}
+
 export async function checkContrast(
   page: Page,
   threshold = 4.5,
 ): Promise<Finding[]> {
-  interface ColorPair { selector: string; fg: string; bg: string }
-
-  const pairs = await page.evaluate((): ColorPair[] => {
-    const results: ColorPair[] = []
-    const candidates = document.querySelectorAll('p, span, h1, h2, h3, h4, h5, h6, div, label')
-    for (const el of Array.from(candidates)) {
-      const style = getComputedStyle(el)
-      const bg = style.backgroundColor
-      // skip transparent backgrounds
-      if (!bg || bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') continue
-      const fg = style.color
-      if (!fg) continue
-      const tag = el.tagName.toLowerCase()
-      const id = (el as HTMLElement).id
-      results.push({ selector: `${tag}${id ? `#${id}` : ''}`, fg, bg })
-    }
-    return results
-  })
+  const pairs = await page.evaluate(
+    collectColorPairs as (root: ParentNode) => ColorPair[],
+    document as unknown as ParentNode,
+  )
 
   const findings: Finding[] = []
   for (const { selector, fg, bg } of pairs) {
@@ -57,7 +68,7 @@ export async function checkContrast(
     if (ratio < threshold) {
       findings.push({
         gate: 'contrast',
-        severity: 'warning',
+        severity: 'error',
         file: selector,
         line: 0,
         message: `Contrast ratio ${ratio.toFixed(2)} < ${threshold} (WCAG AA) — fg: ${fg}, bg: ${bg}`,

@@ -1,0 +1,69 @@
+---
+title: "PR #34 Findings Triage — Expert Consensus"
+issue: 28
+status: consensus-reached
+date: 2026-05-06
+panel: architect, security-auditor, backend-dev
+confidence: medium
+---
+
+## Problem
+
+PR #34 (pre-render validation gates for #28) received a 22-finding code review. After auto-applying 8 high-confidence blockers, 11 findings remained for triage: which to fix in this PR vs defer to follow-up issues vs skip as non-issues.
+
+## Panel
+
+| α | Focus |
+|---|---|
+| architect | module boundaries, test/impl coupling, future-extensibility |
+| security-auditor | OWASP, attack surface, threat model (build-time CLI tool) |
+| backend-dev | Node/TS impl quality, async lifecycle, CLI ergonomics |
+
+## Consensus ρ
+
+Fix in this PR: **B8, N2, N8, N9 (hybrid), N12**.
+Defer to follow-up issues: **B4, N3, N10, N11, N13**.
+Skip as non-issues: **N4**.
+
+### Rationale
+
+Threat model is a build-time CLI tool used by trusted developers locally. Determinism is the project's load-bearing invariant — async-settle races (B8) and path-traversal in CI fork-PR contexts (N2) directly threaten it. Test correctness gaps (N8, N9, N12) are cheap to fix and prevent silent regressions. The deferred items (cli.ts split, sandbox gating, hermetic fixtures, integration smoke, --verbose) are real but bounded; they don't gate correctness and ship-blocking would prolong an iteration that is already on round 2.
+
+### Trade-offs
+
+1. Deferring B4 accepts the static-import cost on `lint` startup; acceptable until benchmarks show regression.
+2. Deferring N11 bets that B5 (now landed) covers the meaningful correctness surface via real jsdom tests; the wrapper-level smoke test moves to a follow-up.
+3. Skipping N4 codifies that DoS-only locals on developer-controlled input are acceptable risk in this threat model.
+
+## Per-finding decisions
+
+| # | Class | Decision | Why |
+|---|---|---|---|
+| B4 | import-hoist-pollution | defer | Refactor scope, not correctness; dynamic `await import()` already lazy-loads gates path |
+| B8 | async-settle-race | fix-now | React 18 concurrent commit can need 2 frames; chained rAF is 2 lines |
+| N2 | path-traversal | fix-now | Concrete fork-PR exploit; `validateCompositionId` already exists, just needs wiring |
+| N3 | puppeteer-sandbox-disabled | defer | Threat-model dependent; misconfigured guard is worse than no guard |
+| N4 | missing-input-validation | skip | DoS-only on author-controlled input in build-time tool |
+| N8 | misleading-fixture | fix-now | Likely R5 has zero coverage today; 1-line fix |
+| N9 | smoke-test-only | fix-now (hybrid) | Assert severity+gate+line in this PR; full AAA mirror deferred |
+| N10 | generator-drift | defer | Test fragility, not correctness; hermetic fixture is non-trivial |
+| N11 | integration-gap | defer | Architect dissent recorded; backend-dev defer conditional on B5 (landed) |
+| N12 | type-widening | fix-now | Type lie at API boundary; cheap discriminated-union fix |
+| N13 | missing-observability | defer | UX nice-to-have; bundle with #27 |
+
+## Dissent
+
+- **architect** dissents from N11 (defer): wants explicit smoke-test for `runValidate`/`runInspect` public wrappers. Reconciliation: B5 extraction enables real jsdom tests for inner functions; wrapper-level test deferred to follow-up issue.
+
+## Follow-up issues to create (linked to this κ + #28)
+
+- B4: chore(cli): split `cli.ts` into `cli-render.ts` + `cli-gates.ts`
+- N3: chore(security): gate Puppeteer `--no-sandbox` behind root/CI env detection
+- N10: refactor(test): hermetic showcase integration test for `runLint`
+- N11: test(gates): integration smoke for `runValidate`/`runInspect` public wrappers
+- N13: feat(cli): `--verbose` flag for gate subcommands
+- N9-rest: test(gates): full AAA mirror of R1 onto R2/R3/R4 lint tests (message regex)
+
+## Next
+
+After fix-batch lands, push `feat/render-gates-28`, await CI, label `reviewed`, merge.
