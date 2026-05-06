@@ -57,7 +57,7 @@ export async function checkContrast(
     if (ratio < threshold) {
       findings.push({
         gate: 'contrast',
-        severity: 'warning',
+        severity: 'error',
         file: selector,
         line: 0,
         message: `Contrast ratio ${ratio.toFixed(2)} < ${threshold} (WCAG AA) — fg: ${fg}, bg: ${bg}`,

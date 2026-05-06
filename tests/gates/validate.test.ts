@@ -46,6 +46,7 @@ describe('validate gate — checkContrast', () => {
     const findings: Finding[] = await checkContrast(page)
     expect(findings).toHaveLength(1)
     expect(findings[0].gate).toBe('contrast')
+    expect(findings[0].severity).toBe('error')
     expect(findings[0].message).toContain('WCAG AA')
   })
 
