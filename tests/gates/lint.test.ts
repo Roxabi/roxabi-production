@@ -18,7 +18,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
   it('flags Math.random() with file:line', () => {
     const f = tmp('const x = Math.random()\n')
     files.push(f)
-    const findings = scanAstFile(f, false)
+    const findings = scanAstFile(f)
     expect(findings.length).toBeGreaterThanOrEqual(1)
     const hit = findings.find(fi => fi.rule === 'R1')
     expect(hit).toBeDefined()
@@ -33,7 +33,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
   it('flags Date.now()', () => {
     const f = tmp('const t = Date.now()\n')
     files.push(f)
-    const findings = scanAstFile(f, false)
+    const findings = scanAstFile(f)
     expect(findings.find(fi => fi.rule === 'R2')).toBeDefined()
   })
 
@@ -41,7 +41,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
   it('flags performance.now()', () => {
     const f = tmp('const p = performance.now()\n')
     files.push(f)
-    const findings = scanAstFile(f, false)
+    const findings = scanAstFile(f)
     expect(findings.find(fi => fi.rule === 'R3')).toBeDefined()
   })
 
@@ -49,7 +49,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
   it('flags .play() call', () => {
     const f = tmp('const el = document.querySelector("video"); el.play()\n')
     files.push(f)
-    const findings = scanAstFile(f, false)
+    const findings = scanAstFile(f)
     expect(findings.find(fi => fi.rule === 'R4')).toBeDefined()
   })
 
@@ -57,7 +57,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
   it('does not flag displayName.play in non-call context', () => {
     const f = tmp('const x = { play: 1 }\n')
     files.push(f)
-    const findings = scanAstFile(f, false)
+    const findings = scanAstFile(f)
     expect(findings.filter(fi => fi.rule === 'R4')).toHaveLength(0)
   })
 
@@ -71,7 +71,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
       'const x = random("seed")',
     ].join('\n'))
     files.push(f)
-    expect(scanAstFile(f, false)).toHaveLength(0)
+    expect(scanAstFile(f)).toHaveLength(0)
   })
 
   // Multiple violations same file
@@ -84,7 +84,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
       'performance.now()',
     ].join('\n'))
     files.push(f)
-    const findings = scanAstFile(f, false)
+    const findings = scanAstFile(f)
     const r1 = findings.find(fi => fi.rule === 'R1')
     const r2 = findings.find(fi => fi.rule === 'R2')
     const r3 = findings.find(fi => fi.rule === 'R3')
@@ -102,7 +102,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
       '}',
     ].join('\n'))
     files.push(f)
-    const findings = scanAstFile(f, false)
+    const findings = scanAstFile(f)
     const r5 = findings.find(fi => fi.rule === 'R5')
     expect(r5).toBeDefined()
     expect(r5!.severity).toBe('warning')
@@ -118,7 +118,7 @@ describe('lint gate — scanAstFile (R1-R4)', () => {
       '}',
     ].join('\n'))
     files.push(f)
-    const findings = scanAstFile(f, false)
+    const findings = scanAstFile(f)
     expect(findings.filter(fi => fi.rule === 'R5')).toHaveLength(0)
   })
 })

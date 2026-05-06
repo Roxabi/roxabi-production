@@ -97,13 +97,13 @@ function isTopLevelComponent(node: ts.Node, sourceFile: ts.SourceFile): boolean 
   return false
 }
 
-function containsAwait(node: ts.Node): ts.AwaitExpression | undefined {
-  if (ts.isAwaitExpression(node)) return node
+function collectAwaits(node: ts.Node): ts.AwaitExpression[] {
+  const results: ts.AwaitExpression[] = []
+  if (ts.isAwaitExpression(node)) results.push(node)
   for (const child of node.getChildren()) {
-    const found = containsAwait(child)
-    if (found) return found
+    results.push(...collectAwaits(child))
   }
-  return undefined
+  return results
 }
 
 // ---------------------------------------------------------------------------
@@ -115,7 +115,7 @@ export interface LintFinding extends Finding {
   rule: string
 }
 
-function scanAstFile(filePath: string, excludeRandom: boolean): LintFinding[] {
+function scanAstFile(filePath: string): LintFinding[] {
   const content = fs.readFileSync(filePath, 'utf8')
   const sourceFile = ts.createSourceFile(
     filePath,
@@ -204,8 +204,7 @@ function scanAstFile(filePath: string, excludeRandom: boolean): LintFinding[] {
     }
     if (!body) continue
 
-    const awaitNode = containsAwait(body)
-    if (awaitNode) {
+    for (const awaitNode of collectAwaits(body)) {
       findings.push({
         gate: 'determinism',
         severity: 'warning',
@@ -331,7 +330,7 @@ export async function runLint(id: string, root: string = process.cwd()): Promise
   const findings: LintFinding[] = []
   for (const file of filesToScan) {
     if (!TS_EXTS.some(e => file.endsWith(e))) continue
-    findings.push(...scanAstFile(file, EXCLUDE.some(ex => file.endsWith(ex))))
+    findings.push(...scanAstFile(file))
   }
 
   return {
