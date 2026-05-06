@@ -5,15 +5,15 @@
 The Puppeteer frame-capture pipeline requires fully deterministic compositions.
 Violations cause frame jitter, broken audio sync, and unreproducible bugs.
 
-| Rule | Rationale | Approved alternative |
-|---|---|---|
-| No `Math.random()` | Non-deterministic across renders | `random(seed)` from `core/random.ts` |
-| No `Date.now()` | Wall-clock varies between runs | Derive seconds: `frame / fps` |
-| No `performance.now()` | Same as `Date.now()` | `frame / fps` |
-| No `.play()` on `<video>` / `<audio>` | Autoplay is blocked headless; audio via FFmpeg | Pass `--audio=` to renderer CLI |
-| No `<video>` without `muted` | Causes playback errors in headless Chromium | `<video muted>` + separate audio track |
-| Caption groups must reset opacity at boundary | Bleeds into next scene | `opacity: frame >= groupEnd ? 0 : 1` |
-| No infinite loops in animations | Capture engine needs a finite `durationInFrames` | Calculate finite repeat counts from `durationInFrames` |
+| # | Rule | Rationale | Approved alternative |
+|---|---|---|---|
+| R1 | No `Math.random()` | Non-deterministic across renders | `random(seed)` from `core/random.ts` |
+| R2 | No `Date.now()` | Wall-clock varies between runs | Derive seconds: `frame / fps` |
+| R3 | No `performance.now()` | Same as `Date.now()` | `frame / fps` |
+| R4 | No `.play()` on `<video>` / `<audio>` | Autoplay is blocked headless; audio via FFmpeg | Pass `--audio=` to renderer CLI |
+| R5 | No `<video>` without `muted` | Causes playback errors in headless Chromium | `<video muted>` + separate audio track |
+| R6 | Caption groups must reset opacity at boundary | Bleeds into next scene | `opacity: frame >= groupEnd ? 0 : 1` |
+| R7 | No infinite loops in animations | Capture engine needs a finite `durationInFrames` | Calculate finite repeat counts from `durationInFrames` |
 
 ### Enforcement
 

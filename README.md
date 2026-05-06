@@ -12,6 +12,8 @@ Building a custom engine gives full control over the render pipeline, compositio
 
 ## Architecture
 
+> See [Determinism Contract](./CLAUDE.md#video-engine-determinism-contract) for invariants compositions must respect.
+
 ```
 core/          → Animation primitives (interpolate, spring, useCurrentFrame, Sequence…)
 lib/           → Utilities (cInterpolate, sprng helpers)

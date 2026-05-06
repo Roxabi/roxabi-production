@@ -1,5 +1,7 @@
 /**
  * Deterministic seeded PRNG (Mulberry32).
+ * R1 (CLAUDE.md): `Math.random()` is forbidden in compositions — use this instead.
+ * Same seed always produces the same value, ensuring frame-reproducible renders.
  * Replaces Remotion random(seed).
  */
 export function random(seed: string | number): number {
