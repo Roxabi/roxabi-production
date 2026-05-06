@@ -23,6 +23,13 @@ export interface RenderConfig {
   bgm?: BgmTrack      // background music
   sfx?: SfxCue[]      // timecoded sound effects
   concurrency?: number
+  strict?: boolean
+}
+
+export const QUALITY_PRESETS: Record<'draft' | 'standard' | 'high', { crf: number }> = {
+  draft:    { crf: 28 },
+  standard: { crf: 18 },
+  high:     { crf: 14 },
 }
 
 export const codecArgs: Record<string, (crf: number) => string[]> = {
