@@ -5,6 +5,8 @@ import { checkOverflow } from './inspect'
 import { runLint as _runLint } from './lint'
 import type { Finding } from './determinism'
 
+export { scanComposition }  // re-export for external callers; prefer runLint for new code
+
 export type { Finding }
 
 export interface GateOptions {
@@ -121,9 +123,9 @@ export async function runGates(
 
   const findings: Finding[] = []
 
-  // 1. Static scan — no server needed, fast
+  // 1. AST lint — no server needed, fast (replaces legacy regex scanComposition)
   if (determinism) {
-    findings.push(...scanComposition(root))
+    findings.push(...(await _runLint(compositionId, root)).findings)
   }
 
   // 2. Puppeteer gates — share one browser session

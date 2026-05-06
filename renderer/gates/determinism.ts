@@ -32,6 +32,10 @@ export function scanFile(filePath: string): Finding[] {
   return findings
 }
 
+/**
+ * @deprecated Use `runLint(compositionId, root)` from `renderer/gates/lint.ts` instead.
+ * Legacy regex-based scan kept for backward compatibility; new code should use the AST gate.
+ */
 export function scanComposition(root: string): Finding[] {
   const dirs: string[] = [path.join(root, 'kits')]
   for (const entry of listProductionConfigs(root)) {
