@@ -81,6 +81,29 @@ if (args.includes('--docker')) {
   console.warn('--docker: not yet implemented, rendering locally')
 }
 
+if (strict) {
+  const port = parseInt(process.env.ROXVID_PORT || '3002', 10)
+  const serverUrl = `http://localhost:${port}`
+  const { runGates } = await import('./gates/index.js')
+  console.log('Running pre-render gates (--strict)...')
+  const findings = await runGates(compositionId, process.cwd(), serverUrl)
+  if (findings.length > 0) {
+    const errors = findings.filter(f => f.severity === 'error')
+    const warnings = findings.filter(f => f.severity === 'warning')
+    for (const f of findings) {
+      const icon = f.severity === 'error' ? 'x' : '!'
+      console.error(`  ${icon} [${f.gate}] ${f.file}:${f.line} — ${f.message}`)
+    }
+    if (errors.length > 0) {
+      console.error(`\nGate failed: ${errors.length} error(s), ${warnings.length} warning(s). Fix before rendering.`)
+      process.exit(1)
+    }
+    console.log(`  ${warnings.length} warning(s) (non-blocking).`)
+  } else {
+    console.log('Gates passed.\n')
+  }
+}
+
 render({
   compositionId,
   outputPath,
