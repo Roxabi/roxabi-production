@@ -14,9 +14,11 @@
  *   --crf=18  --fps=30  --width=1920  --height=1080  --codec=h264
  */
 
+import * as path from 'path'
 import { render } from './render'
 import { QUALITY_PRESETS } from './config'
 import type { BgmTrack, SfxCue } from './config'
+import { findProductionDir } from '../config/paths'
 
 const args = process.argv.slice(2)
 
@@ -25,15 +27,22 @@ let compositionId = args.find(a => a.startsWith('--composition='))?.split('=')[1
 if (!compositionId) {
   compositionId = args.find(a => !a.startsWith('--'))
 }
-const outputIndex = args.findIndex(a => a.startsWith('--output='))
-const outputPath = outputIndex >= 0
-  ? args[outputIndex].split('=')[1]
-  : (args[1]?.startsWith('--') ? `out/${compositionId}.mp4` : (args[1] || `out/${compositionId}.mp4`))
 
 if (!compositionId) {
   console.error('Usage: npx tsx renderer/cli.ts <CompositionId> [output.mp4] [--audio=...] [--bgm=...] [--sfx=...]')
   process.exit(1)
 }
+
+// Default output: <production-dir>/out/<id>.mp4 if production found, else ./out/<id>.mp4
+const productionDir = findProductionDir(compositionId)
+const defaultOutput = productionDir
+  ? path.join(productionDir, 'out', `${compositionId}.mp4`)
+  : `out/${compositionId}.mp4`
+
+const outputIndex = args.findIndex(a => a.startsWith('--output='))
+const outputPath = outputIndex >= 0
+  ? args[outputIndex].split('=')[1]
+  : (args[1]?.startsWith('--') ? defaultOutput : (args[1] || defaultOutput))
 
 function flag(name: string): string | undefined {
   return args.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3)
