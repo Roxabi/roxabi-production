@@ -19,7 +19,11 @@
 
 import * as path from 'path'
 import type { Finding } from './gates/determinism'
+import type { LintResult } from './gates/lint'
 import { validateCompositionId } from './config'
+
+/** Discriminated union so `LintFinding.rule` is preserved through the CLI result path. */
+type GateRunResult = LintResult | { findings: Finding[]; exitCode: number }
 
 const args = process.argv.slice(2)
 const jsonOutput = args.includes('--json')
@@ -81,7 +85,7 @@ if (subcommand) {
 
   const { runLint, runValidate, runInspect } = await import('./gates/index.js')
 
-  let result: { findings: Finding[]; exitCode: number }
+  let result: GateRunResult
 
   if (subcommand === 'lint') {
     result = await runLint(compositionId, root)
