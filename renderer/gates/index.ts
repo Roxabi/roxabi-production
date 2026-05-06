@@ -12,6 +12,7 @@ export interface GateOptions {
   overflow?: boolean      // default: true
   width?: number          // default: 1920
   height?: number         // default: 1080
+  timeout?: number        // ms for page load + selector wait (default: 15000 / 10000)
 }
 
 export async function runGates(
@@ -26,6 +27,7 @@ export async function runGates(
     overflow = true,
     width = 1920,
     height = 1080,
+    timeout = 15000,
   } = opts
 
   const findings: Finding[] = []
@@ -47,9 +49,9 @@ export async function runGates(
       await page.setViewport({ width, height, deviceScaleFactor: 1 })
       await page.goto(
         `${serverUrl}?composition=${encodeURIComponent(compositionId)}&mode=render`,
-        { timeout: 15000 },
+        { timeout },
       )
-      await page.waitForSelector('#render-root', { timeout: 10000 })
+      await page.waitForSelector('#render-root', { timeout: Math.round(timeout * 0.67) })
 
       if (contrast) findings.push(...await checkContrast(page))
       if (overflow) findings.push(...await checkOverflow(page, width, height))

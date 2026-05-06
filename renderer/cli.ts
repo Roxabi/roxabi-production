@@ -76,6 +76,10 @@ const codecFromFormat = format === 'webm' ? 'vp9' : format === 'mp4' ? 'h264' : 
 // --strict
 const strict = args.includes('--strict')
 
+// --timeout <ms>
+const timeoutIdx = args.indexOf('--timeout')
+const gateTimeout = timeoutIdx !== -1 ? parseInt(args[timeoutIdx + 1], 10) : undefined
+
 // --docker: stub only
 if (args.includes('--docker')) {
   console.warn('--docker: not yet implemented, rendering locally')
@@ -86,7 +90,7 @@ if (strict) {
   const serverUrl = `http://localhost:${port}`
   const { runGates } = await import('./gates/index.js')
   console.log('Running pre-render gates (--strict)...')
-  const findings = await runGates(compositionId, process.cwd(), serverUrl)
+  const findings = await runGates(compositionId, process.cwd(), serverUrl, { timeout: gateTimeout })
   if (findings.length > 0) {
     const errors = findings.filter(f => f.severity === 'error')
     const warnings = findings.filter(f => f.severity === 'warning')
