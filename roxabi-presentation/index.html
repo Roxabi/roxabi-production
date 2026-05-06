@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;850;900&family=JetBrains+Mono:wght@400;500&display=block"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --panel: #13191f;
+        --surface: #161b22;
+        --accent: #f0b429;
+        --accent-hover: #fbbf24;
+        --text: #f0ede6;
+        --text-muted: #9ca3af;
+        --text-dim: #6b7280;
+        --border: #21262d;
+        --border-hi: #30363d;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Inter", system-ui, sans-serif;
+        font-feature-settings: "ss01", "cv11";
+        -webkit-font-smoothing: antialiased;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 72px 120px;
+        background: var(--bg);
+        opacity: 0;
+        visibility: hidden;
+      }
+      .meta {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .meta .dot {
+        width: 8px;
+        height: 8px;
+        background: var(--accent);
+        border-radius: 50%;
+      }
+      .accent {
+        color: var(--accent);
+      }
+      .muted {
+        color: var(--text-muted);
+      }
+      .dim {
+        color: var(--text-dim);
+      }
+
+      /* ===== Scene 01 — THE SMITH ===== */
+      .s1-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 48px;
+      }
+      .s1-hero {
+        display: flex;
+        align-items: baseline;
+        gap: 36px;
+      }
+      .s1-num {
+        font-weight: 900;
+        font-size: 320px;
+        line-height: 0.85;
+        letter-spacing: -0.06em;
+        color: var(--accent);
+      }
+      .s1-num-sub {
+        font-weight: 500;
+        font-size: 36px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        max-width: 600px;
+        line-height: 1.2;
+      }
+      .s1-craft {
+        display: flex;
+        gap: 56px;
+        align-items: center;
+      }
+      .s1-craft-item {
+        font-size: 28px;
+        font-weight: 500;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .s1-craft-item .pellet {
+        width: 6px;
+        height: 6px;
+        background: var(--accent);
+        border-radius: 50%;
+      }
+      .s1-kicker {
+        font-size: 42px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text);
+        max-width: 1100px;
+        line-height: 1.15;
+      }
+      .s1-bridge {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 22px;
+        color: var(--accent);
+      }
+
+      /* ===== Scene 02 — THE FORGE ===== */
+      .s2-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 56px;
+      }
+      .s2-machines {
+        display: flex;
+        gap: 32px;
+      }
+      .machine {
+        flex: 1;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 36px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .machine .head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .machine .name {
+        font-size: 38px;
+        font-weight: 850;
+        letter-spacing: -0.03em;
+      }
+      .machine .pulse {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .machine .pulse.dim {
+        background: var(--text-dim);
+      }
+      .machine .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 28px;
+      }
+      .machine .label-caps {
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-dim);
+      }
+      .machine .val {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 18px;
+        color: var(--text-muted);
+      }
+      .s2-tags {
+        display: flex;
+        gap: 18px;
+      }
+      .chip {
+        padding: 12px 22px;
+        border: 1px solid var(--border-hi);
+        border-radius: 999px;
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--text-muted);
+        letter-spacing: 0.04em;
+      }
+      .chip.amber {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .s2-kicker {
+        font-size: 56px;
+        font-weight: 850;
+        letter-spacing: -0.03em;
+        color: var(--text);
+        max-width: 1400px;
+        line-height: 1.05;
+      }
+      .s2-kicker em {
+        font-style: normal;
+        color: var(--accent);
+      }
+
+      /* ===== Scene 03 — THE BLADES ===== */
+      .s3-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 36px;
+        justify-content: center;
+      }
+      .s3-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .blade {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 32px 36px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        position: relative;
+      }
+      .blade .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .blade .name {
+        font-size: 40px;
+        font-weight: 850;
+        letter-spacing: -0.03em;
+      }
+      .blade .role {
+        font-size: 22px;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+      .blade .svc {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 16px;
+        color: var(--text-dim);
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+      }
+      .blade .svc span::before {
+        content: "▸ ";
+        color: var(--accent);
+      }
+      .blade .pulse {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .s3-trinity {
+        display: flex;
+        gap: 56px;
+        justify-content: center;
+        padding-top: 8px;
+      }
+      .s3-trinity .word {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: var(--text);
+      }
+      .s3-trinity .word strong {
+        color: var(--accent);
+        font-weight: 850;
+      }
+      .s3-trinity .sep {
+        color: var(--text-dim);
+        font-size: 32px;
+      }
+
+      /* ===== Scene 04 — THE GUILD ===== */
+      .s4-body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 48px;
+      }
+      .s4-mark {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+      }
+      .s4-word {
+        font-weight: 900;
+        font-size: 180px;
+        letter-spacing: -0.06em;
+        line-height: 0.9;
+        color: var(--text);
+      }
+      .s4-slash {
+        font-weight: 900;
+        font-size: 220px;
+        line-height: 0.9;
+        color: var(--accent);
+        transform: skewX(-12deg);
+        display: inline-block;
+      }
+      .s4-tagline {
+        font-size: 38px;
+        font-weight: 500;
+        color: var(--text-muted);
+        letter-spacing: -0.01em;
+        text-align: center;
+        max-width: 1300px;
+        line-height: 1.25;
+      }
+      .s4-marco {
+        font-style: italic;
+        font-size: 30px;
+        color: var(--text);
+        max-width: 1200px;
+        text-align: center;
+        line-height: 1.35;
+      }
+      .s4-marco strong {
+        color: var(--accent);
+        font-style: normal;
+        font-weight: 700;
+      }
+      .s4-cta {
+        display: flex;
+        gap: 64px;
+      }
+      .s4-cta .verb {
+        font-size: 56px;
+        font-weight: 850;
+        letter-spacing: -0.03em;
+        color: var(--accent);
+      }
+      .s4-url {
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        font-size: 28px;
+        color: var(--text-muted);
+        border-bottom: 2px solid var(--accent);
+        padding-bottom: 6px;
+      }
+      .s4-final {
+        font-size: 64px;
+        font-weight: 850;
+        letter-spacing: -0.03em;
+        color: var(--text);
+      }
+      .s4-final em {
+        font-style: normal;
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="94"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- ===== SCENE 1 — THE SMITH (0 → 24.3) ===== -->
+      <div
+        id="scene-1"
+        class="scene clip"
+        data-start="0"
+        data-duration="24.3"
+        data-track-index="1"
+      >
+        <div class="meta" id="s1-meta">
+          <span class="dot"></span>
+          <span>SCENE 01 · THE SMITH</span>
+        </div>
+        <div class="s1-body">
+          <div class="s1-hero">
+            <div class="s1-num" id="s1-num">14</div>
+            <div class="s1-num-sub" id="s1-num-sub">
+              years orchestrating teams of humans
+            </div>
+          </div>
+          <div class="s1-craft" id="s1-craft">
+            <div class="s1-craft-item"><span class="pellet"></span>intent</div>
+            <div class="s1-craft-item"><span class="pellet"></span>routing</div>
+            <div class="s1-craft-item"><span class="pellet"></span>state</div>
+            <div class="s1-craft-item"><span class="pellet"></span>recovery</div>
+          </div>
+          <div class="s1-kicker" id="s1-kicker">
+            The workers change. <span class="dim">The job doesn't.</span>
+          </div>
+          <div class="s1-bridge" id="s1-bridge">→ now orchestrating agents</div>
+        </div>
+      </div>
+
+      <!-- ===== SCENE 2 — THE FORGE (23.7 → 46.3) ===== -->
+      <div
+        id="scene-2"
+        class="scene clip"
+        data-start="23.7"
+        data-duration="22.6"
+        data-track-index="2"
+      >
+        <div class="meta" id="s2-meta">
+          <span class="dot"></span>
+          <span>SCENE 02 · THE FORGE</span>
+        </div>
+        <div class="s2-body">
+          <div class="s2-machines">
+            <div class="machine" id="s2-m1">
+              <div class="head">
+                <div class="name">M₁ · roxabituwer</div>
+                <div class="pulse" id="s2-m1-pulse"></div>
+              </div>
+              <div class="meta-row">
+                <span class="label-caps">host</span><span class="val">192.168.1.16</span>
+                <span class="label-caps">gpu</span><span class="val">RTX 3080</span>
+                <span class="label-caps">role</span><span class="val accent">hub · 24/7</span>
+              </div>
+            </div>
+            <div class="machine" id="s2-m2">
+              <div class="head">
+                <div class="name">M₂ · roxabitower</div>
+                <div class="pulse dim"></div>
+              </div>
+              <div class="meta-row">
+                <span class="label-caps">os</span><span class="val">Pop!_OS</span>
+                <span class="label-caps">gpu</span><span class="val">RTX 5070 Ti</span>
+                <span class="label-caps">role</span><span class="val">dev · on-demand</span>
+              </div>
+            </div>
+          </div>
+          <div class="s2-tags" id="s2-tags">
+            <div class="chip amber">open-source</div>
+            <div class="chip amber">local-first</div>
+            <div class="chip">MIT</div>
+            <div class="chip">no telemetry</div>
+          </div>
+          <div class="s2-kicker" id="s2-kicker">
+            this stack runs <em>without me.</em>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SCENE 3 — THE BLADES (45.7 → 71.3) ===== -->
+      <div
+        id="scene-3"
+        class="scene clip"
+        data-start="45.7"
+        data-duration="25.6"
+        data-track-index="3"
+      >
+        <div class="meta" id="s3-meta">
+          <span class="dot"></span>
+          <span>SCENE 03 · THE BLADES</span>
+        </div>
+        <div class="s3-body">
+          <div class="s3-grid">
+            <div class="blade" id="b1">
+              <div class="top">
+                <div class="name">Lyra</div>
+                <div class="pulse"></div>
+              </div>
+              <div class="role">answers on Telegram &amp; Discord</div>
+              <div class="svc"><span>lyra_telegram</span><span>lyra_discord</span></div>
+            </div>
+            <div class="blade" id="b2">
+              <div class="top">
+                <div class="name">voiceCLI</div>
+                <div class="pulse"></div>
+              </div>
+              <div class="role">listens &amp; speaks</div>
+              <div class="svc"><span>voicecli_tts</span><span>voicecli_stt</span></div>
+            </div>
+            <div class="blade" id="b3">
+              <div class="top">
+                <div class="name">imageCLI</div>
+                <div class="pulse"></div>
+              </div>
+              <div class="role">generates</div>
+              <div class="svc"><span>imagecli_gen</span></div>
+            </div>
+            <div class="blade" id="b4">
+              <div class="top">
+                <div class="name">2ndBrain</div>
+                <div class="pulse"></div>
+              </div>
+              <div class="role">remembers</div>
+              <div class="svc"><span>knowledge_bot</span></div>
+            </div>
+          </div>
+          <div class="s3-trinity" id="s3-trinity">
+            <div class="word"><strong>MIT</strong></div>
+            <div class="sep">·</div>
+            <div class="word">NO TELEMETRY</div>
+            <div class="sep">·</div>
+            <div class="word">YOURS</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SCENE 4 — THE GUILD (70.7 → 94) ===== -->
+      <div
+        id="scene-4"
+        class="scene clip"
+        data-start="70.7"
+        data-duration="23.3"
+        data-track-index="4"
+      >
+        <div class="meta" id="s4-meta">
+          <span class="dot"></span>
+          <span>SCENE 04 · THE GUILD</span>
+        </div>
+        <div class="s4-body">
+          <div class="s4-mark" id="s4-mark">
+            <span class="s4-word" id="s4-word">ROXABI</span>
+            <span class="s4-slash" id="s4-slash">/</span>
+          </div>
+          <div class="s4-tagline" id="s4-tagline">
+            a creed of compounding primitives ·
+            <span class="accent">a guild of builders around the forge</span>
+          </div>
+          <div class="s4-marco" id="s4-marco">
+            "I'm not trying to replace people. I'm trying <strong>not to be the bottleneck.</strong>"
+          </div>
+          <div class="s4-cta" id="s4-cta">
+            <span class="verb">fork.</span>
+            <span class="verb">ship.</span>
+            <span class="verb">contribute.</span>
+          </div>
+          <div class="s4-url" id="s4-url">github.com/Roxabi</div>
+          <div class="s4-final" id="s4-final">
+            the forge is <em>open.</em>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== AUDIO TRACKS ===== -->
+      <audio
+        id="vo-1-smith"
+        class="clip"
+        src="assets/audio/scene-01-smith.wav"
+        data-start="4"
+        data-duration="13.7"
+        data-track-index="9"
+      ></audio>
+      <audio
+        id="vo-2-forge"
+        class="clip"
+        src="assets/audio/scene-02-forge.wav"
+        data-start="27.7"
+        data-duration="11.5"
+        data-track-index="9"
+      ></audio>
+      <audio
+        id="vo-3-blades"
+        class="clip"
+        src="assets/audio/scene-03-blades.wav"
+        data-start="49.7"
+        data-duration="14.7"
+        data-track-index="9"
+      ></audio>
+      <audio
+        id="vo-4-guild"
+        class="clip"
+        src="assets/audio/scene-04-guild.wav"
+        data-start="74.7"
+        data-duration="12.2"
+        data-track-index="9"
+      ></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true, defaults: { ease: "power2.out" } });
+
+      /* === SCENE 1 — THE SMITH (0 → 24.3) === */
+      tl.set("#scene-1", { autoAlpha: 0 }, 0)
+        .to("#scene-1", { autoAlpha: 1, duration: 0.6 }, 0)
+        .from("#s1-meta", { autoAlpha: 0, x: -24, duration: 0.5 }, 0.3)
+        .from("#s1-num", { autoAlpha: 0, scale: 0.6, duration: 0.9, ease: "back.out(1.6)" }, 0.8)
+        .from("#s1-num-sub", { autoAlpha: 0, x: 16, duration: 0.6 }, 1.6)
+        .from("#s1-craft .s1-craft-item", { autoAlpha: 0, y: 18, duration: 0.5, stagger: 0.18 }, 9.5)
+        .from("#s1-kicker", { autoAlpha: 0, y: 14, duration: 0.7 }, 14.0)
+        .from("#s1-bridge", { autoAlpha: 0, y: 10, duration: 0.6 }, 17.5)
+        .to("#scene-1", { autoAlpha: 0, filter: "blur(8px)", duration: 0.6 }, 23.7)
+        .set("#scene-1", { visibility: "hidden" }, 24.3);
+
+      /* === SCENE 2 — THE FORGE (23.7 → 46.3) === */
+      tl.set("#scene-2", { autoAlpha: 0, filter: "blur(8px)" }, 0)
+        .to("#scene-2", { autoAlpha: 1, filter: "blur(0px)", duration: 0.6 }, 23.7)
+        .from("#s2-meta", { autoAlpha: 0, x: -24, duration: 0.5 }, 24.0)
+        .from("#s2-m1", { autoAlpha: 0, x: -32, duration: 0.6 }, 24.6)
+        .from("#s2-m2", { autoAlpha: 0, x: 32, duration: 0.6 }, 25.0)
+        .to("#s2-m1-pulse", {
+          scale: 1.6,
+          opacity: 0.5,
+          duration: 0.6,
+          yoyo: true,
+          repeat: 18,
+          ease: "sine.inOut",
+        }, 28.0)
+        .from("#s2-tags .chip", { autoAlpha: 0, y: 14, duration: 0.4, stagger: 0.12 }, 32.5)
+        .from("#s2-kicker", { autoAlpha: 0, y: 16, duration: 0.7 }, 38.5)
+        .to("#scene-2", { autoAlpha: 0, filter: "blur(8px)", duration: 0.6 }, 45.7)
+        .set("#scene-2", { visibility: "hidden" }, 46.3);
+
+      /* === SCENE 3 — THE BLADES (45.7 → 71.3) === */
+      tl.set("#scene-3", { autoAlpha: 0, filter: "blur(8px)" }, 0)
+        .to("#scene-3", { autoAlpha: 1, filter: "blur(0px)", duration: 0.6 }, 45.7)
+        .from("#s3-meta", { autoAlpha: 0, x: -24, duration: 0.5 }, 46.0)
+        .from("#b1", { autoAlpha: 0, y: 24, duration: 0.55 }, 46.6)
+        .from("#b2", { autoAlpha: 0, y: 24, duration: 0.55 }, 46.85)
+        .from("#b3", { autoAlpha: 0, y: 24, duration: 0.55 }, 47.1)
+        .from("#b4", { autoAlpha: 0, y: 24, duration: 0.55 }, 47.35)
+        .to("#b1 .pulse", { scale: 1.6, duration: 0.45, yoyo: true, repeat: 1 }, 50.0)
+        .to("#b2 .pulse", { scale: 1.6, duration: 0.45, yoyo: true, repeat: 1 }, 53.0)
+        .to("#b3 .pulse", { scale: 1.6, duration: 0.45, yoyo: true, repeat: 1 }, 55.5)
+        .to("#b4 .pulse", { scale: 1.6, duration: 0.45, yoyo: true, repeat: 1 }, 57.5)
+        .from("#s3-trinity > *", { autoAlpha: 0, y: 14, duration: 0.5, stagger: 0.12 }, 62.5)
+        .to("#scene-3", { autoAlpha: 0, filter: "blur(8px)", duration: 0.6 }, 70.7)
+        .set("#scene-3", { visibility: "hidden" }, 71.3);
+
+      /* === SCENE 4 — THE GUILD (70.7 → 94) === */
+      tl.set("#scene-4", { autoAlpha: 0, filter: "blur(8px)" }, 0)
+        .to("#scene-4", { autoAlpha: 1, filter: "blur(0px)", duration: 0.6 }, 70.7)
+        .from("#s4-meta", { autoAlpha: 0, x: -24, duration: 0.5 }, 71.0)
+        .from("#s4-word", { autoAlpha: 0, scale: 0.85, duration: 0.7, ease: "back.out(1.4)" }, 71.5)
+        .from("#s4-slash", {
+          autoAlpha: 0,
+          x: -40,
+          rotation: 12,
+          duration: 0.7,
+          ease: "back.out(1.6)",
+        }, 72.2)
+        .from("#s4-tagline", { autoAlpha: 0, y: 14, duration: 0.6 }, 73.0)
+        .from("#s4-marco", { autoAlpha: 0, y: 16, duration: 0.7 }, 77.5)
+        .to("#s4-marco", { autoAlpha: 0.35, duration: 0.5 }, 83.5)
+        .from("#s4-cta .verb", { autoAlpha: 0, y: 18, duration: 0.5, stagger: 0.18 }, 84.0)
+        .from("#s4-url", { autoAlpha: 0, y: 10, duration: 0.5 }, 86.0)
+        .from("#s4-final", { autoAlpha: 0, scale: 0.92, duration: 0.8, ease: "back.out(1.4)" }, 88.0)
+        .to(["#s4-cta", "#s4-tagline", "#s4-marco", "#s4-url"], { autoAlpha: 0.45, duration: 0.6 }, 89.0)
+        .to("#scene-4", { autoAlpha: 0, duration: 0.8 }, 93.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>

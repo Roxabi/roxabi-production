@@ -1,9 +1,18 @@
 import type { CompositionConfig } from '../core'
 import { LyraLaunchTrailer } from '../showcase/LyraLaunchTrailer'
 import { QayaTLDR } from '../showcase/QayaTLDR'
+import { RoxabiTrailer } from '../showcase/RoxabiTrailer'
 import { ShowcaseVideo } from '../showcase/ShowcaseVideo'
 
 export const compositions: CompositionConfig[] = [
+  {
+    id: 'roxabi-trailer',
+    component: RoxabiTrailer,
+    durationInFrames: 3300, // 110s @ 30fps
+    fps: 30,
+    width: 1920,
+    height: 1080,
+  },
   {
     id: 'lyra-launch-trailer',
     component: LyraLaunchTrailer,
