@@ -63,7 +63,10 @@ export async function runValidate(
     const heroFrame: number = await page.evaluate(() => (window as any).__ROXVID_HERO__ ?? 0)
     if (heroFrame > 0) {
       await page.evaluate((f: number) => { (window as any).__ROXVID_SET_FRAME__?.(f) }, heroFrame)
-      await page.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)))
+      // 2-rAF settle: React 18 concurrent commit can take 2 frames
+      await page.evaluate(() => new Promise(resolve =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve(undefined)))
+      ))
     }
 
     const findings = await checkContrast(page)
