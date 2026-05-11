@@ -12,3 +12,4 @@ artifacts/
 
 # Engine-local production renders
 showcase/out/
+/.cocoindex_code/
