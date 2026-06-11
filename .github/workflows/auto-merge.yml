@@ -33,6 +33,15 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'reviewed')
     timeout-minutes: 5
     steps:
+      # roxabi-ci App token (ephemeral, 1 h) — replaces the shared org PAT: its pushes
+      # re-trigger CI and it can merge workflow-file PRs, which GITHUB_TOKEN cannot.
+      - name: Mint app token (roxabi-ci)
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          app-id: ${{ vars.ROXABI_CI_APP_ID }}
+          private-key: ${{ secrets.ROXABI_CI_APP_PRIVATE_KEY }}
+
       - name: Block dependabot semver-major bumps
         if: github.event.pull_request.user.login == 'dependabot[bot]'
         env:
@@ -50,7 +59,7 @@ jobs:
       - name: Enable auto-merge (merge commit)
         run: gh pr merge "$PR_NUMBER" --auto --merge --repo "$GITHUB_REPOSITORY"
         env:
-          GH_TOKEN: ${{ secrets.PAT }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
 
   update-behind-prs:
@@ -59,6 +68,15 @@ jobs:
     if: github.event_name == 'push'
     timeout-minutes: 5
     steps:
+      # roxabi-ci App token (ephemeral, 1 h) — replaces the shared org PAT: its pushes
+      # re-trigger CI and it can merge workflow-file PRs, which GITHUB_TOKEN cannot.
+      - name: Mint app token (roxabi-ci)
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1  # v3.2.0
+        with:
+          app-id: ${{ vars.ROXABI_CI_APP_ID }}
+          private-key: ${{ secrets.ROXABI_CI_APP_PRIVATE_KEY }}
+
       - name: Update all reviewed PRs targeting this branch
         run: |
           BRANCH="${GITHUB_REF_NAME}"
@@ -75,7 +93,7 @@ jobs:
               --method PUT -f expected_head_sha="$SHA" || true
           done
         env:
-          GH_TOKEN: ${{ secrets.PAT }}
+          GH_TOKEN: ${{ steps.app.outputs.token }}
 
   close-linked-issues:
     name: Close linked issues
