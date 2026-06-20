@@ -22,7 +22,7 @@
 
 | Besoin | Outil | Exemple |
 |--------|-------|---------|
-| Montage FFmpeg pur (recap OBS, concat, drawtext) | Script FFmpeg | `benchmark/Tetris-Test-Comparaison/video/build-montage.py` |
+| Montage FFmpeg pur (recap OBS, concat, drawtext) | Script FFmpeg + playbook | `benchmark/Tetris-Test-Comparaison/video/build-montage.py` · [recap-obs-playbook.md](https://github.com/Roxabi/tetris-test-comparaison/blob/main/docs/recap-obs-playbook.md) |
 | Vidéo brandée Roxabi avec kits React existants | **roxabi-production** | `metalyde-launch`, `lyra-launch-trailer`, `qaya-tldr` |
 | Nouvelle promo / présentation kinetic type | **HyperFrames** | `~/.roxabi/production/roxabi-presentation/` |
 | Explainer avec assets IA + research web | **OpenMontage** | Pipeline `explainer` ou `animation` |
@@ -160,3 +160,4 @@ Projet HyperFrames (convention parallèle) :
 | OpenMontage upstream | `~/projects/external_repos/Rproduction/OpenMontage` |
 | HyperFrames upstream | `~/projects/external_repos/Rproduction/hyperframes` |
 | Data dirs meta | `~/projects/docs/data-dirs.md` |
+| Playbook recap OBS → site | `benchmark/Tetris-Test-Comparaison/docs/recap-obs-playbook.md` |
