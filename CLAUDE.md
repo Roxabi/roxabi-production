@@ -1,5 +1,13 @@
 # roxabi-production — Project Rules
 
+## Stack vidéo Roxabi
+
+Ce repo est le **moteur React maison** de l'écosystème Roxabi — pas l'unique outil vidéo.
+
+→ **[Mode d'emploi — stack vidéo](docs/mode-emploi-stack-video.md)** : quand utiliser roxabi-production vs HyperFrames vs OpenMontage vs FFmpeg, matrice de décision, data dirs, périmètre long terme.
+
+Avant de choisir un runtime ou de scaffolder une nouvelle production, lire ce fichier.
+
 ## Video Engine Determinism Contract
 
 The Puppeteer frame-capture pipeline requires fully deterministic compositions.
