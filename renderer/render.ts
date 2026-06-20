@@ -87,6 +87,8 @@ export async function render(config: RenderConfig) {
     audioPath,
     bgm,
     sfx,
+    deviceScaleFactor = 1,
+    pixFmt = 'yuv420p',
   } = config
 
   const compositionId = validateCompositionId(rawId)
@@ -102,13 +104,20 @@ export async function render(config: RenderConfig) {
   console.log(`Rendering ${compositionId} → ${outputPath}`)
   console.log(`Resolution: ${width}x${height} @ ${fps}fps`)
 
+  if (deviceScaleFactor > 1) {
+    console.log(`Supersample: ${deviceScaleFactor}× capture → lanczos downscale to ${width}x${height}`)
+  }
+  if (pixFmt !== 'yuv420p') {
+    console.log(`Pixel format: ${pixFmt} (no chroma subsampling — clean saturated edges; not Safari/iOS/hardware-decode safe)`)
+  }
+
   const browser = await puppeteer.launch({
     headless: true,
-    args: [`--window-size=${width},${height}`],
+    args: [`--window-size=${width},${height}`, '--force-color-profile=srgb'],
   })
 
   const page = await browser.newPage()
-  await page.setViewport({ width, height, deviceScaleFactor: 1 })
+  await page.setViewport({ width, height, deviceScaleFactor })
 
   await page.goto(`${serverUrl}?composition=${encodeURIComponent(compositionId)}&mode=render`)
   await page.waitForSelector('#render-root', { timeout: 10000 })
@@ -152,11 +161,22 @@ export async function render(config: RenderConfig) {
     sfx?.forEach(c => console.log(`    sfx  t=${c.at}s  ${path.basename(c.file)}  vol=${c.volume ?? 0.8}`))
   }
 
-  const codecArgList = codecArgs[codec]?.(crf) ?? codecArgs.h264(crf)
+  const codecArgList = codecArgs[codec]?.(crf, pixFmt) ?? codecArgs.h264(crf, pixFmt)
+  // Supersample downscale: lanczos from N× capture → target. Antialiased edges survive
+  // 4:2:0 chroma without ringing (the orange-speckle artifact on saturated text edges).
+  const useComplexAudio = Boolean(bgm || sfx?.length)
+  const scaleArgs =
+    deviceScaleFactor > 1 && !useComplexAudio
+      ? ['-vf', `scale=${width}:${height}:flags=lanczos,setsar=1`]
+      : []
+  if (deviceScaleFactor > 1 && useComplexAudio) {
+    console.warn('  ⚠ --dsf supersample-downscale skipped: not yet wired through bgm/sfx filter_complex')
+  }
   const ffmpegArgs = [
     '-y', '-framerate', String(fps),
     '-i', `${framesDir}/frame-%06d.png`,
     ...audioBefore,
+    ...scaleArgs,
     ...codecArgList,
     ...audioAfter,
     outputPath,

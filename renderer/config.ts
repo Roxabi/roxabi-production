@@ -24,6 +24,8 @@ export interface RenderConfig {
   sfx?: SfxCue[]      // timecoded sound effects
   concurrency?: number
   strict?: boolean
+  deviceScaleFactor?: number  // supersample: capture at N× then lanczos-downscale (artifact-free text/edges). Default 1.
+  pixFmt?: 'yuv420p' | 'yuv444p'  // chroma subsampling. 420 (default) = max-compat. 444 = no chroma subsampling → clean saturated-text edges, but "High 4:4:4 Predictive" profile breaks Safari/iOS/hardware decoders. Use 444 only for desktop/web masters.
 }
 
 export const DEFAULT_FPS = 30
@@ -41,10 +43,10 @@ export const QUALITY_PRESETS: Record<'draft' | 'standard' | 'high', { crf: numbe
   high:     { crf: 14 },
 }
 
-export const codecArgs: Record<string, (crf: number) => string[]> = {
-  h264: (crf) => ['-c:v', 'libx264', '-preset', 'medium', '-crf', String(crf), '-pix_fmt', 'yuv420p'],
+export const codecArgs: Record<string, (crf: number, pixFmt?: string) => string[]> = {
+  h264: (crf, pixFmt = 'yuv420p') => ['-c:v', 'libx264', '-preset', 'medium', '-crf', String(crf), '-pix_fmt', pixFmt, '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv', '-movflags', '+faststart'],
   prores: () => ['-c:v', 'prores_ks', '-profile:v', '3', '-pix_fmt', 'yuva444p10le'],
-  vp9: (crf) => ['-c:v', 'libvpx-vp9', '-crf', String(crf), '-b:v', '0', '-pix_fmt', 'yuv420p'],
+  vp9: (crf, pixFmt = 'yuv420p') => ['-c:v', 'libvpx-vp9', '-crf', String(crf), '-b:v', '0', '-pix_fmt', pixFmt],
 }
 
 const COMPOSITION_ID_RE = /^[a-zA-Z0-9_-]+$/

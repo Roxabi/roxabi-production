@@ -15,6 +15,8 @@
  *   --sfx=t=2.5:file=path.wav           SFX cue at 2.5s (default vol 0.8)
  *   --sfx=t=8.0:file=path.wav:vol=0.6  SFX cue with custom volume
  *   --crf=18  --fps=30  --width=1920  --height=1080  --codec=h264
+ *   --dsf=2                             supersample N× then lanczos-downscale (artifact-free text edges)
+ *   --pixfmt=yuv444p                    no chroma subsampling (clean saturated text; NOT Safari/iOS/hardware-decode safe)
  */
 
 import * as path from 'path'
@@ -230,6 +232,8 @@ render({
   width:  flag('width')  ? parseInt(flag('width')!)  : undefined,
   height: flag('height') ? parseInt(flag('height')!) : undefined,
   codec:  (flag('codec') ?? codecFromFormat(format)) as 'h264' | 'prores' | 'vp9' | undefined,
+  deviceScaleFactor: flag('dsf') ? parseInt(flag('dsf')!) : undefined,
+  pixFmt: flag('pixfmt') as 'yuv420p' | 'yuv444p' | undefined,
   strict,
 }).catch(err => {
   console.error('Render failed:', err)
