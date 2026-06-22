@@ -137,4 +137,4 @@ convention — see [`showcase/README.md`](./showcase/README.md).
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+AGPL-3.0 — see [LICENSE](./LICENSE).

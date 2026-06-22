@@ -66,4 +66,4 @@ cd plugins/content-lab && uv run python scripts/doctor.py
 
 ## License
 
-MIT
+AGPL-3.0 (inherits repo license — see [`../../LICENSE`](../../LICENSE))
