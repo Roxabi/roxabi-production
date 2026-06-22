@@ -77,6 +77,44 @@ describe('validate gate — collectColorPairs (jsdom)', () => {
     const pairs = collectColorPairs(document)
     expect(pairs.find(p => p.selector === 'h1#title')).toBeDefined()
   })
+
+  it('alpha-composites a semi-transparent background over its opaque ancestor (#57)', () => {
+    // amber text on a 12%-alpha amber badge, over a dark opaque scene.
+    container.style.backgroundColor = 'rgb(5, 3, 8)'
+    const badge = document.createElement('span')
+    badge.id = 'badge'
+    badge.style.color = 'rgb(245, 158, 11)'
+    badge.style.backgroundColor = 'rgba(245, 158, 11, 0.12)'
+    badge.textContent = 'AccentBadge'
+    container.appendChild(badge)
+
+    const pair = collectColorPairs(document).find(p => p.selector === 'span#badge')
+    expect(pair).toBeDefined()
+    // bg must be composited toward the dark backdrop, NOT read as solid amber
+    expect(pair!.bg).not.toBe('rgb(245, 158, 11)')
+    const [r, g, b] = pair!.bg.match(/\d+/g)!.map(Number)
+    expect(r).toBeLessThan(60) // darkened by the 0.12 alpha over rgb(5,3,8)
+    expect(g).toBeLessThan(60)
+    expect(b).toBeLessThan(60)
+  })
+})
+
+describe('validate gate — alpha compositing end-to-end (#57)', () => {
+  it('no false positive: amber text on 12%-alpha amber badge over dark scene', async () => {
+    container.style.backgroundColor = 'rgb(5, 3, 8)'
+    const badge = document.createElement('span')
+    badge.id = 'badge'
+    badge.style.color = 'rgb(245, 158, 11)'
+    badge.style.backgroundColor = 'rgba(245, 158, 11, 0.12)'
+    badge.textContent = 'AccentBadge'
+    container.appendChild(badge)
+
+    // collect under jsdom, then run the real contrast math via a mock page
+    const pairs = collectColorPairs(document)
+    const page = { evaluate: async () => pairs } as unknown as Parameters<typeof checkContrast>[0]
+    const findings = await checkContrast(page)
+    expect(findings.find(f => f.file === 'span#badge')).toBeUndefined()
+  })
 })
 
 // ---------------------------------------------------------------------------
