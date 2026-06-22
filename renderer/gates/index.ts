@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer'
+import { sandboxArgs } from '../browser'
 import { scanComposition } from './determinism'
 import { checkContrast } from './validate'
 import { checkOverflow } from './inspect'
@@ -47,7 +48,7 @@ export async function runValidate(
   const { width = 1920, height = 1080, timeout = 15000 } = opts
   const browser = await puppeteer.launch({
     headless: true,
-    args: [`--window-size=${width},${height}`, '--no-sandbox'],
+    args: [`--window-size=${width},${height}`, ...sandboxArgs()],
   })
   try {
     const page = await browser.newPage()
@@ -88,7 +89,7 @@ export async function runInspect(
   const { width = 1920, height = 1080, timeout = 15000 } = opts
   const browser = await puppeteer.launch({
     headless: true,
-    args: [`--window-size=${width},${height}`, '--no-sandbox'],
+    args: [`--window-size=${width},${height}`, ...sandboxArgs()],
   })
   try {
     const page = await browser.newPage()
@@ -138,7 +139,7 @@ export async function runGates(
   if (needsPuppeteer) {
     const browser = await puppeteer.launch({
       headless: true,
-      args: [`--window-size=${width},${height}`, '--no-sandbox'],
+      args: [`--window-size=${width},${height}`, ...sandboxArgs()],
     })
     try {
       const page = await browser.newPage()

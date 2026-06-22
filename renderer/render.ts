@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer'
+import { sandboxArgs } from './browser'
 import { spawnSync } from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
@@ -118,7 +119,7 @@ export async function render(config: RenderConfig) {
     // GPU process crashes mid-render and closes the target ("Target closed",
     // ~frame 1650 on showcase). Software raster is stable AND deterministic
     // across machines (no GPU driver variance) — a determinism win. See #52.
-    args: [`--window-size=${width},${height}`, '--force-color-profile=srgb', '--disable-gpu'],
+    args: [`--window-size=${width},${height}`, '--force-color-profile=srgb', '--disable-gpu', ...sandboxArgs()],
   })
 
   const page = await browser.newPage()
