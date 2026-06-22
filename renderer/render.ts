@@ -113,7 +113,12 @@ export async function render(config: RenderConfig) {
 
   const browser = await puppeteer.launch({
     headless: true,
-    args: [`--window-size=${width},${height}`, '--force-color-profile=srgb'],
+    // --disable-gpu forces software rasterization. Under heavy stacked CSS
+    // filters (blur + chromatic aberration + fog + grain), headless Chromium's
+    // GPU process crashes mid-render and closes the target ("Target closed",
+    // ~frame 1650 on showcase). Software raster is stable AND deterministic
+    // across machines (no GPU driver variance) — a determinism win. See #52.
+    args: [`--window-size=${width},${height}`, '--force-color-profile=srgb', '--disable-gpu'],
   })
 
   const page = await browser.newPage()
