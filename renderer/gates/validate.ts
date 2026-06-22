@@ -51,10 +51,13 @@ export async function checkContrast(
   page: Page,
   threshold = 4.5,
 ): Promise<Finding[]> {
-  const pairs = await page.evaluate(
-    collectColorPairs as (root: ParentNode) => ColorPair[],
-    document as unknown as ParentNode,
-  )
+  // collectColorPairs is a pure DOM function defined in Node scope. Passing
+  // `document` as an evaluate arg fails (it doesn't exist in Node, and a DOM
+  // node isn't serializable). Stringify the function and invoke it with the
+  // page's own `document` inside the browser. See #53.
+  const pairs = (await page.evaluate(
+    `(${collectColorPairs.toString()})(document)`,
+  )) as ColorPair[]
 
   const findings: Finding[] = []
   for (const { selector, fg, bg } of pairs) {
