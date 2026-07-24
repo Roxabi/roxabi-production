@@ -3,6 +3,17 @@
     "forge@roxabi-forge": true,
     "brand-voice@knowledge-work-plugins": true,
     "marketing@knowledge-work-plugins": true,
-    "product-management@knowledge-work-plugins": true
+    "product-management@knowledge-work-plugins": true,
+    "dev-core@roxabi-marketplace": true,
+    "dev-init@roxabi-marketplace": true
+  },
+  "extraKnownMarketplaces": {
+    "roxabi-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "Roxabi/roxabi-plugins"
+      },
+      "autoUpdate": true
+    }
   }
 }
